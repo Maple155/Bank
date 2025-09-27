@@ -1,0 +1,8 @@
+com\banque\courant\dao\ClientDAO.class
+com\banque\courant\ejb\OperationServiceEJB.class
+com\banque\courant\entity\OperationCourant.class
+com\banque\courant\dao\CompteCourantDAO.class
+com\banque\courant\entity\CompteCourant.class
+com\banque\courant\dao\OperationDAO.class
+com\banque\courant\ejb\ClientServiceEJB.class
+com\banque\courant\ejb\CompteCourantServiceEJB.class

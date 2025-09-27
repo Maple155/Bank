@@ -1,0 +1,4 @@
+com\banque\pret\dao\PretDAO.class
+com\banque\pret\entity\Remboursement.class
+com\banque\pret\ejb\PretServiceEJB.class
+com\banque\pret\entity\Pret.class
