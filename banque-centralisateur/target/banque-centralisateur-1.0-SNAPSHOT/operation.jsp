@@ -8,7 +8,7 @@
 %>
 <html>
 <head>
-    <title>Banque Centralisateur</title>
+    <title>operation Courant</title>
 </head>
 <body>
     <h1>Debiter ou Crediter votre compte</h1>

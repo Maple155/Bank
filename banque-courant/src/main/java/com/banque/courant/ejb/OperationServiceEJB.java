@@ -6,7 +6,6 @@ import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;

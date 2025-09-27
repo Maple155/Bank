@@ -1,8 +1,7 @@
 package com.banque.pret.entity;
 
 import jakarta.persistence.*;
-// import com.banque.courant.entity.*;
-import com.banque.entity.*;
+import com.banque.courant.entity.*;
 import java.sql.Date;
 
 @Entity
@@ -19,8 +18,8 @@ public class Pret {
     private Double taux;
 
     @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
-    private Client client;
+    @JoinColumn(name = "compte_courant", nullable = false)
+    private CompteCourant compteCourant;
     
     @Column(name = "date_accord", nullable = false)
     private Date date_accord; 
@@ -31,11 +30,11 @@ public class Pret {
     // Constructors
     public Pret() {}
     
-    public Pret(Double montant, Double taux, Client client, Date date_accord, String statut) 
+    public Pret(Double montant, Double taux, CompteCourant compteCourant, Date date_accord, String statut) 
     {
         this.montant = montant;
         this.taux = taux;
-        this.client = client;
+        this.compteCourant = compteCourant;
         this.date_accord = date_accord;
         this.statut = statut;
     }
@@ -65,14 +64,6 @@ public class Pret {
         this.taux = taux;
     }
 
-    public Client getClient() {
-        return client;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
     public Date getDate_accord() {
         return date_accord;
     }
@@ -87,5 +78,13 @@ public class Pret {
 
     public void setStatut(String statut) {
         this.statut = statut;
+    }
+
+    public CompteCourant getCompteCourant() {
+        return compteCourant;
+    }
+
+    public void setCompteCourant(CompteCourant compteCourant) {
+        this.compteCourant = compteCourant;
     }
 }
