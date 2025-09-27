@@ -19,12 +19,12 @@
         <br>
             <h3> Votre solde est actuellement de <%= solde %><h3>
     <% } %>
-    <a href="${pageContext.request.contextPath}/operation?compte=<%= compte.getId() %>"> Operation Courant</a>
+    <a href="${pageContext.request.contextPath}/operation?compte=<%= compte.getId() %>"> Debiter / Crediter le compte</a>
     <br>
     <a href="#"> Creer un compte depot</a>
     <br>
     <a href="#"> Compte depot</a>
     <br>
-    <a href="#"> Faire un pret</a>
+    <a href="${pageContext.request.contextPath}/pret?compte=<%= compte.getId() %>"> Demander / Rembourser un pret</a>
 </body>
 </html>

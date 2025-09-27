@@ -5,6 +5,7 @@
 <%
     CompteCourant compte = (CompteCourant) request.getAttribute("compte");
     String error = (String) request.getAttribute("error");
+    String message = (String) request.getAttribute("message");
 %>
 <html>
 <head>
@@ -19,14 +20,17 @@
         <% if (error != null ) {%>
             <h2> <%= error %> </h2>
         <% } %>
+        <% if (message != null ) {%>
+            <h2> <%= message %> </h2>
+        <% } %>
         <input type="number" min="0" name="montant" placeholder="ex: 1000000 Ar" required>
         <br>
         <br>
         <label for="action">Type d'operation :</label>
         <select name="action" id="action" required>
             <option value="">-- Sélectionnez l'operation --</option>
-            <option value="crediter"> Demander</option>
-            <option value="debiter"> Rembourser</option>
+            <option value="demander"> Demander</option>
+            <option value="rembourser"> Rembourser</option>
         </select>
         <br>
         <br>
