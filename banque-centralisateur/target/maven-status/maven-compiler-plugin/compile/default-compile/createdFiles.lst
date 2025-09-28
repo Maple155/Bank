@@ -1,3 +1,4 @@
+com\banque\centralisateur\web\TransactionServlet.class
 com\banque\centralisateur\ejb\CompteDepotEJB.class
 com\banque\centralisateur\model\OperationDepot.class
 com\banque\centralisateur\ejb\OperationDepotEJB.class

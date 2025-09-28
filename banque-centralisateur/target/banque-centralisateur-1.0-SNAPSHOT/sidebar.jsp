@@ -9,6 +9,7 @@
             </form>
         </li>
         <li><a href="${pageContext.request.contextPath}/operation?compte=<%= compte.getId() %>">Debiter / Crediter le compte</a></li>
+        <li><a href="${pageContext.request.contextPath}/transaction?compte=<%= compte.getId() %>">Envoyer de l'argent </a></li>
         <li><a href="${pageContext.request.contextPath}/connexionDepot?compte=<%= compte.getId() %>">Creer / Utiliser un compte depot</a></li>
         <li><a href="${pageContext.request.contextPath}/pret?compte=<%= compte.getId() %>">Demander / Rembourser un pret</a></li>
     </ul>
