@@ -55,9 +55,9 @@ public class PretServlet extends HttpServlet {
         int compte_id = Integer.valueOf(request.getParameter("compte").toString());
         CompteCourant compte = compteCourantDAO.findById(compte_id);
         Pret pretImpaye = PSE.getPretsImpayesByCompte(compte_id);
-        Banque banque = banqueDAO.findById(1);
+        // Banque banque = banqueDAO.findById(1);
         Date currDate = Date.valueOf(LocalDate.now());
-        double soldeActuel = OSE.getSoldeActuel(compte_id);
+        // double soldeActuel = OSE.getSoldeActuel(compte_id);
 
         // if (soldeActuel < montant) {
         //     request.setAttribute("compte", compte);

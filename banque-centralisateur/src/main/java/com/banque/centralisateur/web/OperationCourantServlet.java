@@ -6,6 +6,10 @@ import jakarta.servlet.annotation.WebServlet;
 import com.banque.courant.entity.*;
 import com.banque.courant.ejb.*;
 import com.banque.entity.*;
+import com.banque.pret.dao.PretDAO;
+import com.banque.pret.ejb.PretServiceEJB;
+import com.banque.pret.entity.Pret;
+import com.banque.pret.entity.Remboursement;
 import com.banque.courant.dao.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
@@ -24,6 +28,12 @@ public class OperationCourantServlet extends HttpServlet {
     private OperationDAO operationDAO;
     @EJB
     private OperationServiceEJB OSE;
+    @EJB 
+    private PretDAO pretDAO;
+    @EJB
+    private PretServiceEJB PSE;
+    @EJB 
+    private BanqueDAO banqueDAO;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -40,7 +50,7 @@ public class OperationCourantServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        
+
         String action = request.getParameter("action");
         double montant = Double.valueOf(request.getParameter("montant").toString());
         int compte_id = Integer.valueOf(request.getParameter("compte").toString());
@@ -52,13 +62,24 @@ public class OperationCourantServlet extends HttpServlet {
         if ("crediter".equals(action)) {
             OperationCourant opc = new OperationCourant(compte, montant, currDate);
             operationDAO.save(opc);
-            
+
             solde = OSE.getSoldeActuel(compte_id);
+
+            List<OperationCourant> operationsCourant = operationDAO.findAll();
+
+            List<Pret> prets = pretDAO.findByCompte(compte.getId());
+            Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
+            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
+            double resteAPayePret = PSE.resteAPaye(pret.getId());
 
             request.setAttribute("solde", solde);
             request.setAttribute("compte", compte);
+            request.setAttribute("operationsCourant", operationsCourant);
+            request.setAttribute("pretImpaye", pret);
+            request.setAttribute("prets", prets);
+            request.setAttribute("remboursements", remboursements);
+            request.setAttribute("resteAPaye", resteAPayePret);
             request.setAttribute("message", "Creditation reussi");
-
             response.getWriter().write("<h1> 1 </h1>");
             request.getRequestDispatcher("/client.jsp").forward(request, response);
             return;
@@ -68,7 +89,8 @@ public class OperationCourantServlet extends HttpServlet {
 
             if (solde < montant) {
                 request.setAttribute("compte", compte);
-                request.setAttribute("error", "Vous ne pouvez pas debiter cette montant votre solde est de " + solde + " Ar ");
+                request.setAttribute("error",
+                        "Vous ne pouvez pas debiter cette montant votre solde est de " + solde + " Ar ");
 
                 response.getWriter().write("<h1> 2 </h1>");
                 request.getRequestDispatcher("/operation.jsp").forward(request, response);
@@ -80,8 +102,20 @@ public class OperationCourantServlet extends HttpServlet {
 
                 solde = OSE.getSoldeActuel(compte_id);
 
+                List<OperationCourant> operationsCourant = operationDAO.findAll();
+
+                List<Pret> prets = pretDAO.findByCompte(compte.getId());
+                Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
+                List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
+                double resteAPayePret = PSE.resteAPaye(pret.getId());
+
                 request.setAttribute("solde", solde);
                 request.setAttribute("compte", compte);
+                request.setAttribute("operationsCourant", operationsCourant);
+                request.setAttribute("pretImpaye", pret);
+                request.setAttribute("prets", prets);
+                request.setAttribute("remboursements", remboursements);
+                request.setAttribute("resteAPaye", resteAPayePret);
                 request.setAttribute("message", "Debite avec succes");
 
                 response.getWriter().write("<h1> 3 </h1>");

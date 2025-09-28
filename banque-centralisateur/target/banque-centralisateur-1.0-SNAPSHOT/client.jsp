@@ -21,9 +21,7 @@
     <% } %>
     <a href="${pageContext.request.contextPath}/operation?compte=<%= compte.getId() %>"> Debiter / Crediter le compte</a>
     <br>
-    <a href="#"> Creer un compte depot</a>
-    <br>
-    <a href="#"> Compte depot</a>
+    <a href="${pageContext.request.contextPath}/connexionDepot?compte=<%= compte.getId() %>"> Creer / Utiliser un compte depot</a>
     <br>
     <a href="${pageContext.request.contextPath}/pret?compte=<%= compte.getId() %>"> Demander / Rembourser un pret</a>
 </body>
