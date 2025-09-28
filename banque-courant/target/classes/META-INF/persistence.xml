@@ -11,6 +11,7 @@
         <class>com.banque.entity.Client</class>
         <class>com.banque.courant.entity.OperationCourant</class>
         <class>com.banque.courant.entity.Banque</class>
+        <class>com.banque.courant.entity.Transaction</class>
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>

@@ -15,16 +15,30 @@ public class Banque {
     @Column(name = "capital", nullable = false)
     private double capital;
 
+    @Column(name = "taux_depot", nullable = false)
+    private double tauxDepot;
+
+    @Column(name = "taux_pret", nullable = false)
+    private double tauxPret;
+
     public Banque() {
     }
-
-    public Banque(double capital) {
+    
+    public Banque(double capital, double tauxDepot, double tauxPret) {
         this.capital = capital;
-    }
+        this.tauxDepot = tauxDepot;
+        this.tauxPret = tauxPret;
+    }    
     
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
     public double getCapital() { return capital; }
     public void setCapital(double capital) { this.capital = capital; }
+
+    public double getTauxPret() { return tauxPret; }
+    public void setTauxPret(double tauxPret) { this.tauxPret = tauxPret; }
+
+    public double getTauxDepot() { return tauxDepot; }
+    public void setTauxDepot(double tauxDepot) { this.tauxDepot = tauxDepot; }
 }
