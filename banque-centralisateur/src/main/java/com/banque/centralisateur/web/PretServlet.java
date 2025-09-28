@@ -70,7 +70,7 @@ public class PretServlet extends HttpServlet {
                 double resteApaye = PSE.resteAPaye(pretImpaye.getId());
 
                 request.setAttribute("compte", compte);
-                request.setAttribute("error", "Vous avez encore un pret de " + resteApaye + " Ar à rembourser");
+                request.setAttribute("error", "Vous avez encore un pret de " + resteApaye + " MGA à rembourser");
                 request.getRequestDispatcher("/pret.jsp").forward(request, response);
             } else {
                 Pret pret = new Pret(montant, 24.0, compte, currDate, "en_cours");

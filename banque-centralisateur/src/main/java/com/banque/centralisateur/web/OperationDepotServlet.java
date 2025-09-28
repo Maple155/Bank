@@ -55,16 +55,15 @@ public class OperationDepotServlet extends HttpServlet {
         String action = request.getParameter("action");
         double montant = Double.valueOf(request.getParameter("montant").toString());
         int compte_id = Integer.valueOf(request.getParameter("compteDepot").toString());
-        int compteCourant_id = Integer.valueOf(request.getParameter("compteCourant").toString());
+        int compteCourant_id = Integer.valueOf(request.getParameter("compte").toString());
         CompteDepot compteDepot = compteDepotEJB.getCompteDepot(compte_id);
         CompteCourant compteCourant = compteCourantDAO.findById(compteCourant_id);
         double solde = ODE.getSoldeByCompte(compte_id);
         double half = solde - ((solde * 50) / 100);
         LocalDateTime currDate = LocalDateTime.now();
 
-        request.setAttribute("compteCourant", compteCourant);
+        request.setAttribute("compte", compteCourant);
         request.setAttribute("compteDepot", compteDepot);
-        response.getWriter().write("<h1> 0 </h1>");
 
         if ("crediter".equals(action)) {
             OperationDepot opd = new OperationDepot(compte_id, montant, currDate);
@@ -72,20 +71,22 @@ public class OperationDepotServlet extends HttpServlet {
             
             solde = ODE.getSoldeByCompte(compte_id);
 
+            List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
+
+            request.setAttribute("operations", operationDepots);
             request.setAttribute("solde", solde);
             request.setAttribute("message", "Creditation reussi");
 
-            response.getWriter().write("<h1> 1 </h1>");
             request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
             return;
         } else if ("debiter".equals(action)) {
 
-            response.getWriter().write("<h1> 4 </h1>");
-
             if (solde < montant || half < montant) {
-                request.setAttribute("error", "Vous ne pouvez pas debiter qu'une montant inferieur ou egale à " + half + " Ar ");
+                request.setAttribute("error", "Vous ne pouvez pas debiter qu'une montant inferieur ou egale à " + half + " MGA ");
 
-                response.getWriter().write("<h1> 2 </h1>");
+                List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
+
+                request.setAttribute("operations", operationDepots);
                 solde = ODE.getSoldeByCompte(compte_id);
 
                 request.setAttribute("solde", solde);
@@ -97,11 +98,12 @@ public class OperationDepotServlet extends HttpServlet {
                 ODE.createOperation(opd);
 
                 solde = ODE.getSoldeByCompte(compte_id);
+                List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
 
+                request.setAttribute("operations", operationDepots);
                 request.setAttribute("solde", solde);
                 request.setAttribute("message", "Debite avec succes");
 
-                response.getWriter().write("<h1> 3 </h1>");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 return;
             }

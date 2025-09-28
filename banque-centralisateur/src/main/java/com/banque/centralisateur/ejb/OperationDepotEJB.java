@@ -56,6 +56,15 @@ public class OperationDepotEJB {
             String json = client.target(DOTNET_API + "/by-compte/" + compteId)
                     .request(MediaType.APPLICATION_JSON)
                     .get(String.class);
+
+            // 🔥 Debug : afficher le JSON brut
+            // System.out.println("JSON brut reçu : " + json);
+
+            // 🔥 Debug : afficher le JSON formaté avec Jackson
+            Object jsonObject = mapper.readValue(json, Object.class);
+            String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+            System.out.println("JSON formaté reçu :\n" + prettyJson);
+            
             return mapper.readValue(json, new TypeReference<List<OperationDepot>>() {});
         } catch (Exception e) {
             e.printStackTrace();
