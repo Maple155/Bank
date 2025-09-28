@@ -1,7 +1,14 @@
 package com.banque.centralisateur.ejb;
 
+import com.banque.centralisateur.model.CompteDepot;
 import com.banque.centralisateur.model.OperationDepot;
+import com.banque.courant.dao.CompteCourantDAO;
+import com.banque.courant.dao.OperationDAO;
+import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.entity.OperationCourant;
+
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -13,10 +20,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @ApplicationScoped
 public class OperationDepotEJB {
+
+    @Inject
+    private CompteCourantDAO compteCourantDAO;
+    @Inject 
+    private OperationDAO operationDAO;
 
     private static final String DOTNET_API = "http://localhost:5240/api/operationdepot";
     private final Client client = ClientBuilder.newClient();
@@ -99,5 +114,21 @@ public class OperationDepotEJB {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public void crediterCompte (CompteDepot compteDepot, CompteCourant compteCourant, double montant, LocalDateTime currDate) {
+        OperationDepot opd = new OperationDepot(compteDepot.getId(), montant, currDate);
+        this.createOperation(opd);
+
+        OperationCourant opc = new OperationCourant(compteCourant, (montant * -1), Date.valueOf(LocalDate.now()));
+        operationDAO.save(opc);
+    }
+
+    public void debiterCompte (CompteDepot compteDepot, CompteCourant compteCourant, double montant, LocalDateTime currDate) {
+        OperationDepot opd = new OperationDepot(compteDepot.getId(), (montant * -1), currDate);
+        this.createOperation(opd);
+
+        OperationCourant opc = new OperationCourant(compteCourant, montant, Date.valueOf(LocalDate.now()));
+        operationDAO.save(opc);
     }
 }

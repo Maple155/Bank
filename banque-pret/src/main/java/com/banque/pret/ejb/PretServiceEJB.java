@@ -1,12 +1,17 @@
 package com.banque.pret.ejb;
 
 import com.banque.pret.entity.*;
+import com.banque.courant.dao.OperationDAO;
+import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.entity.OperationCourant;
 import com.banque.pret.dao.*;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+
+import java.sql.Date;
 import java.util.List;
 
 @Stateless
@@ -15,7 +20,9 @@ public class PretServiceEJB {
     private EntityManager em;
     @EJB 
     private PretDAO pretDAO;
-    
+    // @EJB
+    // private OperationDAO operationDAO;
+
     public Pret findPret(int id) {
         return em.find(Pret.class, id);
     }
@@ -74,4 +81,13 @@ public class PretServiceEJB {
 
         return montantApaye - rembourse;
     }
+
+    public void rembourserPret (Pret pret, CompteCourant compteCourant, double montant, Date currDate, OperationDAO operationDAO) {
+        Remboursement remboursement = new Remboursement(pret, montant, currDate);
+        pretDAO.saveRemboursement(remboursement);
+
+        OperationCourant operation = new OperationCourant(compteCourant, (montant * -1), currDate);
+        operationDAO.save(operation);
+    }
+
 }
