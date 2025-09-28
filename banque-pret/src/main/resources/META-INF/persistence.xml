@@ -12,7 +12,7 @@
         <class>com.banque.entity.Client</class>
         <class>com.banque.courant.entity.CompteCourant</class>
         <class>com.banque.courant.entity.OperationCourant</class>
-
+        <class>com.banque.courant.dao.OperationDAO</class>
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>

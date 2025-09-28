@@ -92,27 +92,21 @@ public class PretServlet extends HttpServlet {
                 double newReste = resteApaye - montant;
                 if (newReste < 0 ) {
                     double montantApaye = montant - newReste;
-                    Remboursement remboursement = new Remboursement(pretImpaye, montantApaye, currDate);
-                    pretDAO.saveRemboursement(remboursement);
+
+                    PSE.rembourserPret(pretImpaye, compte, montantApaye, currDate, operationDAO);
 
                     pretImpaye.setStatut("rembourse");
                     pretImpaye.setDate_accord(currDate);
                     pretDAO.save(pretImpaye);
-
-                    OperationCourant operation = new OperationCourant(compte, (montantApaye * -1), currDate);
-                    operationDAO.save(operation);
                 } else {
-                    Remboursement remboursement = new Remboursement(pretImpaye, montant, currDate);
-                    pretDAO.saveRemboursement(remboursement);
+
+                    PSE.rembourserPret(pretImpaye, compte, montant, currDate, operationDAO);
 
                     if (newReste == 0 ) {
                         pretImpaye.setStatut("rembourse");
                         pretImpaye.setDate_accord(currDate);
                         pretDAO.save(pretImpaye);
                     }
-
-                    OperationCourant operation = new OperationCourant(compte, (montant * -1), currDate);
-                    operationDAO.save(operation);
                 }
 
                 request.setAttribute("compte", compte);

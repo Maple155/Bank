@@ -41,6 +41,7 @@
         <input type="submit" value="Rechercher">
     </form>
 
+    <br><br>
     <%-- Formulaire envoi argent --%>
     <% if (compte_receiver != null) { %>
         <form action="${pageContext.request.contextPath}/transaction" method="POST" class="container">

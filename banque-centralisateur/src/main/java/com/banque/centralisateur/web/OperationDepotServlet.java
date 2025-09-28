@@ -69,6 +69,8 @@ public class OperationDepotServlet extends HttpServlet {
             OperationDepot opd = new OperationDepot(compte_id, montant, currDate);
             ODE.createOperation(opd);
             
+            // ODE.crediterCompte(compteDepot, compteCourant, montant, currDate);
+
             solde = ODE.getSoldeByCompte(compte_id);
 
             List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
@@ -97,6 +99,8 @@ public class OperationDepotServlet extends HttpServlet {
                 OperationDepot opd = new OperationDepot(compte_id, montant, currDate);
                 ODE.createOperation(opd);
 
+                // ODE.debiterCompte(compteDepot, compteCourant, (montant * -1), currDate);
+                
                 solde = ODE.getSoldeByCompte(compte_id);
                 List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
 
