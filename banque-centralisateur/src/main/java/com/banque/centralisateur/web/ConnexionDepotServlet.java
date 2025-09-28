@@ -62,9 +62,11 @@ public class ConnexionDepotServlet extends HttpServlet {
                 CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
     
                 double solde = ODE.getSoldeByCompte(compteDepot.getId());
-    
+                List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
+
+                request.setAttribute("operations", operationDepots);
                 request.setAttribute("solde", solde);
-                request.setAttribute("compteCourant", compteCourant);
+                request.setAttribute("compte", compteCourant);
                 request.setAttribute("compteDepot", compteDepot);
                 request.setAttribute("message", "Connection reussi");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);                

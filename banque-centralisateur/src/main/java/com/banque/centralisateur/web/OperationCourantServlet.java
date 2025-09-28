@@ -65,12 +65,16 @@ public class OperationCourantServlet extends HttpServlet {
 
             solde = OSE.getSoldeActuel(compte_id);
 
-            List<OperationCourant> operationsCourant = operationDAO.findAll();
+            List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
 
             List<Pret> prets = pretDAO.findByCompte(compte.getId());
             Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
-            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
-            double resteAPayePret = PSE.resteAPaye(pret.getId());
+            List<Remboursement> remboursements = null;
+            double resteAPayePret = 0.0;
+            if (pret != null) {
+                remboursements = pretDAO.getRemboursementByPret(pret.getId());
+                resteAPayePret = PSE.resteAPaye(pret.getId());
+            }
 
             request.setAttribute("solde", solde);
             request.setAttribute("compte", compte);
@@ -90,7 +94,7 @@ public class OperationCourantServlet extends HttpServlet {
             if (solde < montant) {
                 request.setAttribute("compte", compte);
                 request.setAttribute("error",
-                        "Vous ne pouvez pas debiter cette montant votre solde est de " + solde + " Ar ");
+                        "Vous ne pouvez pas debiter cette montant votre solde est de " + solde + " MGA ");
 
                 response.getWriter().write("<h1> 2 </h1>");
                 request.getRequestDispatcher("/operation.jsp").forward(request, response);
@@ -102,12 +106,16 @@ public class OperationCourantServlet extends HttpServlet {
 
                 solde = OSE.getSoldeActuel(compte_id);
 
-                List<OperationCourant> operationsCourant = operationDAO.findAll();
+                List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
 
                 List<Pret> prets = pretDAO.findByCompte(compte.getId());
                 Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
-                List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
-                double resteAPayePret = PSE.resteAPaye(pret.getId());
+                List<Remboursement> remboursements = null;
+                double resteAPayePret = 0.0;
+                if (pret != null) {
+                    remboursements = pretDAO.getRemboursementByPret(pret.getId());
+                    resteAPayePret = PSE.resteAPaye(pret.getId());
+                }
 
                 request.setAttribute("solde", solde);
                 request.setAttribute("compte", compte);

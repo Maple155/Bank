@@ -57,12 +57,16 @@ public class ConnexionServlet extends HttpServlet {
 
             double solde = OSE.getSoldeActuel(compte.getId());
 
-            List<OperationCourant> operationsCourant = operationDAO.findAll();
+            List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
 
             List<Pret> prets = pretDAO.findByCompte(compte.getId());
             Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
-            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
-            double resteAPayePret = PSE.resteAPaye(pret.getId());
+            List<Remboursement> remboursements = null;
+            double resteAPayePret = 0.0;
+            if (pret != null) {
+                remboursements = pretDAO.getRemboursementByPret(pret.getId());
+                resteAPayePret = PSE.resteAPaye(pret.getId());
+            }
 
             request.setAttribute("solde", solde);
             request.setAttribute("compte", compte);
