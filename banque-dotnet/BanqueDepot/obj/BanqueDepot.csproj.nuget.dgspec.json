@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\BanqueDepot\\BanqueDepot.csproj": {}
+    "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\banqueDepot\\BanqueDepot.csproj": {}
   },
   "projects": {
-    "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\BanqueDepot\\BanqueDepot.csproj": {
+    "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\banqueDepot\\BanqueDepot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\BanqueDepot\\BanqueDepot.csproj",
+        "projectUniqueName": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\banqueDepot\\BanqueDepot.csproj",
         "projectName": "BanqueDepot",
-        "projectPath": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\BanqueDepot\\BanqueDepot.csproj",
+        "projectPath": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\banqueDepot\\BanqueDepot.csproj",
         "packagesPath": "C:\\Users\\ROMUALD\\.nuget\\packages\\",
-        "outputPath": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\BanqueDepot\\obj\\",
+        "outputPath": "D:\\IT.University\\S5\\archi_log\\banque\\bank_project\\bank_project\\banque-dotnet\\banqueDepot\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ROMUALD\\AppData\\Roaming\\NuGet\\NuGet.Config"

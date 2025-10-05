@@ -2,7 +2,9 @@
 <html>
 <head>
     <title>Banque Centralisateur</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <%-- Sidebar CSS si besoin --%>
+    <%-- <link rel="stylesheet" href="${pageContext.request.contextPath}/css/sidebar.css"> --%>
 </head>
 <body>
     <%-- Sidebar --%>
@@ -10,8 +12,10 @@
 
     <div class="main-content" style="text-align:center; padding-top:50px;">
         <h1>Bienvenue sur la Banque Centralisateur</h1>
-        <a class="button-link" href="${pageContext.request.contextPath}/listeClient">Liste des clients</a>
-        <a class="button-link" href="${pageContext.request.contextPath}/connexion">Se connecter</a>
+        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <a class="button-link" href="${pageContext.request.contextPath}/banque">Banque</a>
+            <a class="button-link" href="${pageContext.request.contextPath}/connexion">Clients</a>
+        </div>
     </div>
 </body>
 </html>

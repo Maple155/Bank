@@ -1,102 +1,145 @@
-/* === Styles globaux === */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f8;
-    color: #333;
+/* === VARIABLES === */
+:root {
+    --primary: #1b5e20;       /* vert foncé */
+    --secondary: #43a047;     /* vert clair */
+    --white: #ffffff;
+    --light-beige: #f9f9f4;   /* fond clair */
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --radius: 12px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* === GLOBAL === */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--light-beige);
+    color: var(--text-dark);
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-/* Container formulaire */
+/* === CONTAINER FORM === */
 .container {
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 400px;
-    transition: transform 0.3s;
+    max-width: 420px;
+    padding: 2rem;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
 }
 
-.container:hover {
-    transform: translateY(-3px);
-}
-
-/* Titres */
+/* === TITRES === */
 h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #1f2937;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary);
 }
 
-/* Messages d'erreur / info */
 h3 {
+    color: var(--danger);
+    font-size: 1rem;
+    margin-bottom: 1rem;
     text-align: center;
-    color: #dc2626; /* rouge */
-    margin-bottom: 15px;
 }
 
-/* Inputs */
-input, select {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
+/* === FORM === */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+label {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+    padding: 0.7rem 1rem;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-input:focus, select:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
     outline: none;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Boutons */
-input[type="submit"], .toggle-btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    margin-top: 10px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.3s, transform 0.2s;
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
 }
 
 input[type="submit"] {
-    background-color: #2563eb;
-    color: #fff;
+    padding: 0.8rem 1rem;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 input[type="submit"]:hover {
-    background-color: #1d4ed8;
-    transform: translateY(-2px);
+    background: var(--secondary);
 }
 
+/* === TOGGLE BUTTON === */
 .toggle-btn {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
     background: none;
-    color: #2563eb;
-    text-decoration: underline;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
 }
 
 .toggle-btn:hover {
-    color: #1d4ed8;
+    background: var(--primary);
+    color: var(--white);
 }
 
-/* Cacher / afficher formulaire */
+/* === FORMULAIRES MASQUÉS === */
 .hidden {
     display: none;
 }
 
-/* Responsive */
-@media(max-width: 500px) {
+/* === RESPONSIVE === */
+@media (max-width: 480px) {
     .container {
-        padding: 20px;
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
+
+    input[type="submit"],
+    .toggle-btn {
+        font-size: 0.9rem;
+        padding: 0.7rem 0.9rem;
     }
 }

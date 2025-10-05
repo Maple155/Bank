@@ -10,7 +10,8 @@
 <html>
 <head>
     <title>Prêt</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/sidebar.css">
 </head>
 <body>
 
@@ -21,10 +22,10 @@
     <h1>Demander ou Rembourser un prêt</h1>
 
     <% if (error != null) { %>
-        <h3 style="color:#dc2626;"><%= error %></h3>
+        <h3 class="error"><%= error %></h3>
     <% } %>
     <% if (message != null) { %>
-        <h3 style="color:#16a34a;"><%= message %></h3>
+        <h3 class="success"><%= message %></h3>
     <% } %>
 
     <form method="POST" action="${pageContext.request.contextPath}/pret" class="container">

@@ -7,6 +7,7 @@ import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.entity.OperationCourant;
 
+import jakarta.ejb.EJB;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Client;
@@ -28,9 +29,9 @@ import java.util.ArrayList;
 @ApplicationScoped
 public class OperationDepotEJB {
 
-    @Inject
+    @EJB
     private CompteCourantDAO compteCourantDAO;
-    @Inject 
+    @EJB
     private OperationDAO operationDAO;
 
     private static final String DOTNET_API = "http://localhost:5240/api/operationdepot";

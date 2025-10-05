@@ -8,8 +8,10 @@
     <persistence-unit name="banquePretPU" transaction-type="JTA">
         <jta-data-source>java:/BanqueDS</jta-data-source>
         <class>com.banque.pret.entity.Pret</class>
+        <class>com.banque.pret.entity.PretStatut</class>
         <class>com.banque.pret.entity.Remboursement</class>
         <class>com.banque.entity.Client</class>
+        <class>com.banque.entity.TypesStatut</class>
         <class>com.banque.courant.entity.CompteCourant</class>
         <class>com.banque.courant.entity.OperationCourant</class>
         <class>com.banque.courant.dao.OperationDAO</class>

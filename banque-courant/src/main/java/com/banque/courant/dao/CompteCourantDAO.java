@@ -60,5 +60,18 @@ public class CompteCourantDAO {
             return null;
         }
     }
+
+    public List<CompteCourant> findByClient(Client client) {
+        try {
+            String jpql = "SELECT c FROM CompteCourant c " +
+            "WHERE c.client.id = :clientId ";
+            
+            return em.createQuery(jpql, CompteCourant.class)
+                     .setParameter("clientId", client.getId())
+                     .getResultList();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
     
 }

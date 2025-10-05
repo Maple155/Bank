@@ -11,7 +11,8 @@
 <html>
 <head>
     <title>Connexion Compte Dépôt</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/connexion.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/sidebar.css">
 </head>
 <body>
 <%-- Sidebar --%>

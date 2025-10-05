@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "client")
 public class Client {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -31,7 +31,8 @@ public class Client {
     }
 
     // Constructors
-    public Client() {}
+    public Client() {
+    }
 
     public int getId() {
         return id;
@@ -40,7 +41,7 @@ public class Client {
     public void setId(int id) {
         this.id = id;
     }
-    
+
     public String getNom() {
         return nom;
     }
@@ -64,7 +65,7 @@ public class Client {
     public void setEmail(String email) {
         this.email = email;
     }
- 
+
     public String getAdresse() {
         return adresse;
     }
@@ -72,7 +73,7 @@ public class Client {
     public void setAdresse(String adresse) {
         this.adresse = adresse;
     }
- 
+
     public Date getDate_naissance() {
         return date_naissance;
     }

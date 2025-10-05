@@ -1,0 +1,106 @@
+/* Corps de page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fdfaf6; /* beige clair */
+    color: #2F4F4F; /* gris foncé */
+    margin: 20px;
+}
+
+/* Titres */
+h1, h2 {
+    color: #2F4F4F;
+    margin-top: 20px;
+}
+
+/* Sections */
+.section {
+    margin-bottom: 30px;
+}
+
+/* Conteneur de cartes */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Carte */
+.card {
+    background-color: #ffffff; /* blanc */
+    border: 1px solid #e0e0d1; /* beige foncé */
+    border-radius: 10px;
+    padding: 15px;
+    flex: 1 1 250px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Titres internes des cartes */
+.card h3 {
+    margin-top: 0;
+    color: #16a34a; /* vert */
+    font-size: 1.2em;
+}
+
+/* Paragraphes internes */
+.card p {
+    margin: 5px 0;
+}
+
+/* Statut des prêts */
+.status-paid {
+    color: #16a34a; /* vert */
+    font-weight: bold;
+}
+
+.status-due {
+    color: #d97706; /* orange */
+    font-weight: bold;
+}
+
+/* Informations client */
+.client-info p {
+    margin: 5px 0;
+}
+
+/* Boutons génériques */
+.button-link {
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 10px 5px 0 0;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+/* Bouton Valider */
+.button-validate {
+    background-color: #16a34a; /* vert */
+}
+
+.button-validate:hover {
+    background-color: #15803d;
+}
+
+/* Bouton Refuser */
+.button-refuse {
+    background-color: #dc2626; /* rouge */
+}
+
+.button-refuse:hover {
+    background-color: #b91c1c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-container {
+        flex-direction: column;
+    }
+}
