@@ -94,17 +94,22 @@ public class BanqueServlet extends HttpServlet {
 
         Client client = clientDAO.findById(clientId);
         double soldeTotal = 0.0;
+        double soldeCourant = 0.0;
+        double resteApaye = 0.0;
+        double soldeDepot = 0.0;
 
         List<PretStatut> prets = new ArrayList<>();
         List<CompteCourant> compteCourants = compteCourantDAO.findByClient(client);
         for (CompteCourant compteCourant : compteCourants) {
             double temp = OSE.getSoldeActuel(compteCourant.getId());
             soldeTotal += temp;
+            soldeCourant += temp;
 
             PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compteCourant.getId());
             if (pretImpaye != null) {
                 double temp1 = PSE.resteAPaye(pretImpaye.getPret().getId());
                 soldeTotal += temp1;
+                resteApaye += temp1;
                 prets.add(pretImpaye);
             }
         }
@@ -113,6 +118,7 @@ public class BanqueServlet extends HttpServlet {
         for (CompteDepot compteDepot : compteDepots) {
             double temp2 = ODE.getSoldeByCompte(compteDepot.getId());
             soldeTotal += temp2;
+            soldeDepot += temp2;
         }
 
         List<PretStatut> allPret = pretStatutDAO.getPretsAvecStatutActuelByClient(clientId);
@@ -123,6 +129,9 @@ public class BanqueServlet extends HttpServlet {
         req.setAttribute("prets", prets);
         req.setAttribute("allPrets", allPret);
         req.setAttribute("soldeTotal", soldeTotal);
+        req.setAttribute("soldeCourant", soldeCourant);
+        req.setAttribute("soldePret", resteApaye);
+        req.setAttribute("soldeDepot", soldeDepot);
 
         req.getRequestDispatcher("/detailsClient.jsp").forward(req, resp);
     }
