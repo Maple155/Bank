@@ -1,4 +1,7 @@
-com\banque\pret\dao\PretDAO.class
 com\banque\pret\entity\Remboursement.class
 com\banque\pret\ejb\PretServiceEJB.class
+com\banque\pret\entity\PretStatut.class
+com\banque\pret\dao\PretDAO.class
+com\banque\pret\dao\PretStatutDAO.class
 com\banque\pret\entity\Pret.class
+com\banque\pret\dao\TypeStatutDAO.class

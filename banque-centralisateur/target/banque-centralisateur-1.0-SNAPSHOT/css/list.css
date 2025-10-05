@@ -1,0 +1,153 @@
+/* style.css - Contenu principal */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fdfaf5; /* beige clair */
+    margin: 0;
+    padding: 0;
+    color: #2f4f4f; /* vert foncé pour textes principaux */
+}
+
+h1, h2, h3 {
+    color: #2f4f4f;
+}
+
+h3.error {
+    color: #dc2626; /* rouge pour erreurs */
+}
+
+h3.success {
+    color: #16a34a; /* vert pour succès */
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0 20px 0;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+input[type="submit"],
+button.toggle-btn {
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+input[type="submit"]:hover,
+button.toggle-btn:hover {
+    background-color: #15803d;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Pour l'affichage des cartes de comptes et prêts */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 250px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+.card p {
+    margin: 6px 0;
+}
+
+.card .badge-success {
+    background-color: #16a34a;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85em;
+}
+
+.card .badge-warning {
+    background-color: #facc15; /* jaune */
+    color: #2f4f4f;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-container {
+        justify-content: center;
+    }
+    .card {
+        width: 90%;
+    }
+}
+
+/* style_tableau.css */
+.list-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.list-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 15px;
+    width: 280px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.list-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+}
+
+.list-card h4 {
+    margin: 0 0 10px 0;
+    color: #2f4f4f;
+}
+
+.list-card p {
+    margin: 4px 0;
+    color: #4b4b4b;
+}

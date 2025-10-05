@@ -15,7 +15,8 @@
 <html>
 <head>
     <title>Opérations Compte Dépôt</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/sidebar.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/operation.css">
 </head>
 <body>
 

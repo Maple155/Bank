@@ -1,129 +1,266 @@
-/* Reset minimal */
-* {
+/* === PALETTE === */
+:root {
+    --primary: #1b5e20;     /* Vert foncé */
+    --secondary: #43a047;   /* Vert clair */
+    --danger: #c62828;      /* Rouge sombre */
+    --light: #f9f9f4;       /* Beige clair */
+    --white: #ffffff;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --radius: 12px;
+    --shadow: 0 4px 8px rgba(0,0,0,0.05);
+  }
+  
+  /* === GLOBAL === */
+  * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-    background-color: #f4f6f8;
-    color: #333;
-    line-height: 1.6;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--text-dark);
     display: flex;
-    min-height: 100vh;
-}
-
-/* Sidebar */
-.sidebar {
-    width: 220px;
-    background-color: #1f2937;
-    color: #fff;
-    padding: 20px;
-    flex-shrink: 0;
-}
-
-.sidebar h2 {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    color: #fbbf24;
-}
-
-.sidebar a {
-    display: block;
-    color: #fff;
-    text-decoration: none;
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 4px;
-    transition: background 0.3s;
-}
-
-.sidebar a:hover {
-    background-color: #374151;
-}
-
-/* Main content */
-.main-content {
+  }
+  
+  /* === MAIN CONTENT === */
+  .main-content {
+    margin-left: 250px; /* largeur sidebar */
+    padding: 2rem;
     flex: 1;
-    padding: 30px;
-}
-
-/* Headings */
-h1 {
-    color: #111827;
-    margin-bottom: 10px;
-}
-
-h2 {
-    color: #1f2937;
-    margin: 20px 0 10px;
-    font-size: 1.2rem;
-}
-
-h3 {
-    margin: 15px 0;
-    color: #4b5563;
-}
-
-/* Tables */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background: #fff;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-th, td {
-    padding: 12px 15px;
-    text-align: left;
-}
-
-th {
-    background-color: #2563eb;
-    color: #fff;
+  }
+  
+  /* === HEADER / SOLDE === */
+  .welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+  }
+  
+  .welcome-text h1 {
+    font-size: 1.8rem;
     font-weight: 600;
-}
-
-tr:nth-child(even) {
-    background-color: #f3f4f6;
-}
-
-tr:hover {
-    background-color: #e0e7ff;
-    transition: background 0.3s;
-}
-
-/* Links in content */
-a.button-link {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #2563eb;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    margin: 5px 0;
-    transition: background 0.3s;
-}
-
-a.button-link:hover {
-    background-color: #1d4ed8;
-}
-
-/* Responsive */
-@media(max-width: 768px) {
-    body {
-        flex-direction: column;
-    }
-    .sidebar {
-        width: 100%;
-        display: flex;
-        overflow-x: auto;
-    }
-    .sidebar a {
-        margin-right: 10px;
-    }
-}
+  }
+  
+  .subtitle {
+    color: var(--text-light);
+    font-size: 0.95rem;
+  }
+  
+  .balance-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: right;
+  }
+  
+  .balance-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+  
+  .balance-amount {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .currency {
+    font-size: 0.8rem;
+  }
+  
+  .balance-footer {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+  
+  /* === OPERATIONS === */
+  .operations-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+  }
+  
+  .cards-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  
+  .operation-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .operation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  }
+  
+  .operation-card.credit .operation-amount {
+    color: var(--secondary);
+  }
+  
+  .operation-card.debit .operation-amount {
+    color: var(--danger);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .5rem;
+  }
+  
+  .card-header i {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+  
+  /* === LOANS / PRETS === */
+  .loans-section {
+    margin-top: 2rem;
+  }
+  
+  .loans-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+  }
+  
+  .loans-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .loan-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .loan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  }
+  
+  .loan-card.paid {
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .loan-card.active {
+    border-left: 5px solid var(--danger);
+  }
+  
+  .loan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .8rem;
+  }
+  
+  .loan-amount-main {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  
+  .loan-badge {
+    padding: .3rem .7rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--white);
+  }
+  
+  .badge-success {
+    background: var(--secondary);
+  }
+  
+  .badge-warning {
+    background: var(--danger);
+  }
+  
+  .loan-details {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+  }
+  
+  .loan-details p {
+    margin-bottom: .3rem;
+  }
+  
+  .paid-text {
+    color: var(--secondary);
+    font-weight: 600;
+  }
+  
+  .due-text {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  
+  /* === TRANSACTIONS (SENT / RECEIVED) === */
+  .transactions-list {
+    display: grid;
+    gap: 0.8rem;
+  }
+  
+  .transaction-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .transaction-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  
+  .transaction-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 1rem;
+  }
+  
+  .transaction-amount.positive {
+    color: var(--secondary);
+  }
+  
+  .transaction-amount.negative {
+    color: var(--danger);
+  }
+  

@@ -4,6 +4,7 @@ import com.banque.pret.entity.*;
 import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.entity.OperationCourant;
+import com.banque.entity.TypesStatut;
 import com.banque.pret.dao.*;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
@@ -20,6 +21,11 @@ public class PretServiceEJB {
     private EntityManager em;
     @EJB 
     private PretDAO pretDAO;
+    @EJB
+    private PretStatutDAO pretStatutDAO;
+    @EJB
+    private TypeStatutDAO typeStatutDAO;
+
     // @EJB
     // private OperationDAO operationDAO;
 
@@ -53,11 +59,11 @@ public class PretServiceEJB {
                 .getResultList();
     }
 
-    public Pret getPretsImpayesByCompte(int compte_id) {
+    public PretStatut getPretsImpayesByCompte(int compte_id) {
         try {
-            List<Pret> prets = pretDAO.findByCompte(compte_id);
-            for (Pret pret : prets) {
-                if (pret.getStatut().equals("en_cours")) {
+            List<PretStatut> prets = pretStatutDAO.getPretsAvecStatutActuelByCompte(compte_id);
+            for (PretStatut pret : prets) {
+                if (pret.getStatut().getType().equalsIgnoreCase("En cours")) {
                     return pret;
                 }
             }
@@ -83,11 +89,29 @@ public class PretServiceEJB {
     }
 
     public void rembourserPret (Pret pret, CompteCourant compteCourant, double montant, Date currDate, OperationDAO operationDAO) {
-        Remboursement remboursement = new Remboursement(pret, montant, currDate);
-        pretDAO.saveRemboursement(remboursement);
-
-        OperationCourant operation = new OperationCourant(compteCourant, (montant * -1), currDate);
-        operationDAO.save(operation);
+        try {
+            Remboursement remboursement = new Remboursement(pret, montant, currDate);
+            pretDAO.saveRemboursement(remboursement);
+    
+            OperationCourant operation = new OperationCourant(compteCourant, (montant * -1), currDate);
+            operationDAO.save(operation);   
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
+    public void demanderPret(double montant, CompteCourant compte, Date currDate) {
+        try {
+            Pret pret = new Pret(montant, 24.0, compte, currDate);
+            pretDAO.save(pret);
+    
+            // TypesStatut type = typeStatutDAO.findByType("En cours");
+            TypesStatut type = typeStatutDAO.findByType("En attente");
+    
+            PretStatut pretStatut = new PretStatut(pret, type, currDate);
+            pretStatutDAO.save(pretStatut);   
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

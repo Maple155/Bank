@@ -23,20 +23,16 @@ public class Pret {
     
     @Column(name = "date_accord", nullable = false)
     private Date date_accord; 
-    
-    @Column(name = "statut", nullable = false)
-    private String statut;
 
     // Constructors
     public Pret() {}
     
-    public Pret(Double montant, Double taux, CompteCourant compteCourant, Date date_accord, String statut) 
+    public Pret(Double montant, Double taux, CompteCourant compteCourant, Date date_accord) 
     {
         this.montant = montant;
         this.taux = taux;
         this.compteCourant = compteCourant;
         this.date_accord = date_accord;
-        this.statut = statut;
     }
 
     // Getters & Setters
@@ -70,14 +66,6 @@ public class Pret {
 
     public void setDate_accord(Date date_accord) {
         this.date_accord = date_accord;
-    }
-
-    public String getStatut() {
-        return statut;
-    }
-
-    public void setStatut(String statut) {
-        this.statut = statut;
     }
 
     public CompteCourant getCompteCourant() {

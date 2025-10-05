@@ -5,7 +5,7 @@
 <html>
 <head>
     <title>Authentification</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/connexion.css">
 </head>
 <body>
 <%-- <%@ include file="sidebar.jsp" %> --%>

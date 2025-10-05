@@ -9,6 +9,7 @@ import com.banque.entity.*;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.Pret;
+import com.banque.pret.entity.PretStatut;
 import com.banque.pret.entity.Remboursement;
 import com.banque.courant.dao.*;
 import jakarta.servlet.http.*;
@@ -34,6 +35,10 @@ public class ConnexionServlet extends HttpServlet {
     private PretServiceEJB PSE;
     @EJB 
     private BanqueDAO banqueDAO;
+    @EJB
+    private TransactionDAO transactionDAO;
+    @EJB
+    private TransactionServiceEJB TSE;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -60,18 +65,26 @@ public class ConnexionServlet extends HttpServlet {
             List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
 
             List<Pret> prets = pretDAO.findByCompte(compte.getId());
-            Pret pret = PSE.getPretsImpayesByCompte(compte.getId());
+            PretStatut pret = PSE.getPretsImpayesByCompte(compte.getId());
+            Pret pretImpaye = null;
+
             List<Remboursement> remboursements = null;
             double resteAPayePret = 0.0;
             if (pret != null) {
-                remboursements = pretDAO.getRemboursementByPret(pret.getId());
-                resteAPayePret = PSE.resteAPaye(pret.getId());
+                pretImpaye = pretDAO.findById(pret.getPret().getId());
+                remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
+                resteAPayePret = PSE.resteAPaye(pretImpaye.getId());
             }
 
+            List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
+            List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
+
+            request.setAttribute("sender", transactionsSender);
+            request.setAttribute("receiver", transactionsReceiver);
             request.setAttribute("solde", solde);
             request.setAttribute("compte", compte);
             request.setAttribute("operationsCourant", operationsCourant);
-            request.setAttribute("pretImpaye", pret);
+            request.setAttribute("pretImpaye", pretImpaye);
             request.setAttribute("prets", prets);
             request.setAttribute("remboursements", remboursements);
             request.setAttribute("resteAPaye", resteAPayePret);

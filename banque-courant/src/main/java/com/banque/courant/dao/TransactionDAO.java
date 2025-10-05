@@ -46,7 +46,7 @@ public class TransactionDAO {
             String jpql = "SELECT op FROM Transaction op WHERE op.receiver.id = :receiverID";
 
             return em.createQuery(jpql, Transaction.class)
-                    .setParameter("sreceiverID", receiver_id)
+                    .setParameter("receiverID", receiver_id)
                     .getResultList();
         } catch (NoResultException e) {
             return null;
