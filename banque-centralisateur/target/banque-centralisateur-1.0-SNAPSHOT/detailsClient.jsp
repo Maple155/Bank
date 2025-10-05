@@ -13,6 +13,10 @@
     List<CompteDepot> compteDepots = (List<CompteDepot>) request.getAttribute("compteDepots");
     List<PretStatut> prets = (List<PretStatut>) request.getAttribute("prets");
     double soldeTotal = (double) request.getAttribute("soldeTotal");
+
+    double soldeCourant = (double) request.getAttribute("soldeCourant");
+    double soldePret = (double) request.getAttribute("soldePret");
+    double soldeDepot = (double) request.getAttribute("soldeDepot");
 %>
 
 <!DOCTYPE html>
@@ -35,6 +39,9 @@
     <p><strong>Adresse :</strong> <%= client.getAdresse() %></p>
     <p><strong>Date de naissance :</strong> <%= client.getDate_naissance() %></p>
     <p><strong>Solde total (courant + prêts impayés + depot) :</strong> <%= String.format("%,.2f MGA", request.getAttribute("soldeTotal")) %></p>
+    <p><strong>Solde total (courant) :</strong> <%= String.format("%,.2f MGA", request.getAttribute("soldeCourant")) %></p>
+    <p><strong>Solde total (prêts impayés + taux d'interêt) :</strong> <%= String.format("%,.2f MGA", request.getAttribute("soldePret")) %></p>
+    <p><strong>Solde total (depot) :</strong> <%= String.format("%,.2f MGA", request.getAttribute("soldeDepot")) %></p>
 </div>
 
 <!-- Comptes Courants -->
