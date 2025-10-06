@@ -33,18 +33,35 @@
             <input type="hidden" name="compte" value="<%= compte.getId() %>">
         <% } %>
 
-        <input type="number" min="0" name="montant" placeholder="Ex: 1000000 MGA" required>
-
+        <input type="number" min="0" name="montant" placeholder="Ex: 1000000" required>
+        <br>
+        <input type="text" name="montant_str" placeholder="Ex: Un Millions" required>
+        <br>
+        <input type="number" min="0" name="mois" placeholder="Mois total de remboursement" required>
+        <br>
         <label for="action">Type d'opération :</label>
         <select name="action" id="action" required>
             <option value="">-- Sélectionnez l'opération --</option>
             <option value="demander">Demander</option>
             <option value="rembourser">Rembourser</option>
         </select>
-
+        <br>
         <input type="submit" value="Confirmer">
     </form>
-
+    <%
+        Boolean downloadPDF = (Boolean) request.getAttribute("downloadPDF");
+        if (downloadPDF != null && downloadPDF) {
+        String montant_str = (String) request.getAttribute("montant_str");
+    %>
+        <script>
+            window.onload = function() {
+                // Déclenche automatiquement le téléchargement du PDF après la redirection
+                window.location.href = '<%= request.getContextPath() %>/pret?download=1&compte=<%= compte.getId() %>&montant=<%= montant_str %>';
+            };
+        </script>
+    <%
+        }
+    %>
     <%-- <% if(compte != null) { %>
         <a class="button-link" href="${pageContext.request.contextPath}/operation?compte=<%= compte.getId() %>">Débiter / Créditer le compte</a>
         <a class="button-link" href="${pageContext.request.contextPath}/connexionDepot?compte=<%= compte.getId() %>">Créer / Utiliser un compte dépôt</a>

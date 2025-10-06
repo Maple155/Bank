@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BanqueDepot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d35547e0a138aaf91888e5422804e823bf9e1511")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ec77f66493fb860e67b0676641074dea6d69df13")]
 [assembly: System.Reflection.AssemblyProductAttribute("BanqueDepot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BanqueDepot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

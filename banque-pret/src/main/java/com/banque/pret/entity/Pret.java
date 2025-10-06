@@ -24,6 +24,9 @@ public class Pret {
     @Column(name = "date_accord", nullable = false)
     private Date date_accord; 
 
+    @Column(name = "nbrMois", nullable = false)
+    private int nbrMois; 
+
     // Constructors
     public Pret() {}
     
@@ -35,6 +38,14 @@ public class Pret {
         this.date_accord = date_accord;
     }
 
+    public Pret(Double montant, Double taux, CompteCourant compteCourant, Date date_accord, int nbrMois) {
+        this.montant = montant;
+        this.taux = taux;
+        this.compteCourant = compteCourant;
+        this.date_accord = date_accord;
+        this.nbrMois = nbrMois;
+    }
+    
     // Getters & Setters
     public int getId() {
         return id;
@@ -74,5 +85,13 @@ public class Pret {
 
     public void setCompteCourant(CompteCourant compteCourant) {
         this.compteCourant = compteCourant;
+    }
+
+    public int getNbrMois() {
+        return nbrMois;
+    }
+
+    public void setNbrMois(int nbrMois) {
+        this.nbrMois = nbrMois;
     }
 }

@@ -100,13 +100,13 @@ public class PretServiceEJB {
         }
     }
 
-    public void demanderPret(double montant, CompteCourant compte, Date currDate) {
+    public void demanderPret(double montant, CompteCourant compte, Date currDate, int moisRemboursement) {
         try {
-            Pret pret = new Pret(montant, 24.0, compte, currDate);
+            Pret pret = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
             pretDAO.save(pret);
     
-            // TypesStatut type = typeStatutDAO.findByType("En cours");
-            TypesStatut type = typeStatutDAO.findByType("En attente");
+            TypesStatut type = typeStatutDAO.findByType("En cours");
+            // TypesStatut type = typeStatutDAO.findByType("En attente");
     
             PretStatut pretStatut = new PretStatut(pret, type, currDate);
             pretStatutDAO.save(pretStatut);   
