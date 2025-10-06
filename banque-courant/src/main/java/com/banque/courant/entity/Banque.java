@@ -21,13 +21,21 @@ public class Banque {
     @Column(name = "taux_pret", nullable = false)
     private double tauxPret;
 
+    @Column(name = "nom", nullable = false)
+    private String nom;
+
+    @Column(name = "siege", nullable = false)
+    private String siege;
+
     public Banque() {
     }
     
-    public Banque(double capital, double tauxDepot, double tauxPret) {
+    public Banque(double capital, double tauxDepot, double tauxPret, String nom, String siege) {
         this.capital = capital;
         this.tauxDepot = tauxDepot;
         this.tauxPret = tauxPret;
+        this.nom = nom;
+        this.siege = siege;
     }    
     
     public int getId() { return id; }
@@ -41,4 +49,10 @@ public class Banque {
 
     public double getTauxDepot() { return tauxDepot; }
     public void setTauxDepot(double tauxDepot) { this.tauxDepot = tauxDepot; }
+
+    public String getNom() { return nom; }
+    public void setNom(String nom) { this.nom = nom; }
+
+    public String getSiege() { return siege; }
+    public void setSiege(String siege) { this.siege = siege; }
 }
