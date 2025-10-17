@@ -13,6 +13,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
@@ -71,6 +72,21 @@ public class PretServiceEJB {
             return null; 
         }
         return null;
+    }
+
+    public List<PretStatut> getPretsImpayesListByCompte(int compte_id) {
+        try {
+            List<PretStatut> pretStatuts = new ArrayList<>();
+            List<PretStatut> prets = pretStatutDAO.getPretsAvecStatutActuelByCompte(compte_id);
+            for (PretStatut pret : prets) {
+                if (pret.getStatut().getType().equalsIgnoreCase("En cours")) {
+                    pretStatuts.add(pret);
+                }
+            }
+            return pretStatuts;
+        } catch (NoResultException e) {
+            return null; 
+        }
     }
 
     public double resteAPaye (int pret_id) {

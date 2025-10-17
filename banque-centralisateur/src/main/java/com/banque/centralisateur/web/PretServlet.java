@@ -57,24 +57,24 @@ public class PretServlet extends HttpServlet {
             Pret temPret = pretDAO.findById(pret.getPret().getId());
             String montant_str = req.getParameter("montant").toString();
             // Banque banque = banqueDAO.findById(1);
-            
+
             resp.setContentType("application/pdf");
             resp.setHeader("Content-Disposition", "attachment; filename=contrat_pret.pdf");
 
             PDFservice.genererContratPret(
-                resp.getOutputStream(),
-                // banque.getNom(),
-                "Ma Banque",
-                compte.getClient().getNom() + " " + compte.getClient().getPrenom(),
-                temPret.getMontant().toString(),
-                montant_str + " MGA",
-                // "vingt millions MGA",
-                // banque.getSiege(),
-                "Antananarivo",
-                // LocalDate.now(),
-                temPret.getDate_accord().toLocalDate(),
-                LocalDate.now().plusMonths(temPret.getNbrMois())
-                // LocalDate.now().plusMonths(6)
+                    resp.getOutputStream(),
+                    // banque.getNom(),
+                    "Ma Banque",
+                    compte.getClient().getNom() + " " + compte.getClient().getPrenom(),
+                    temPret.getMontant().toString(),
+                    montant_str + " MGA",
+                    // "vingt millions MGA",
+                    // banque.getSiege(),
+                    "Antananarivo",
+                    // LocalDate.now(),
+                    temPret.getDate_accord().toLocalDate(),
+                    LocalDate.now().plusMonths(temPret.getNbrMois())
+            // LocalDate.now().plusMonths(6)
             );
 
             resp.flushBuffer();
@@ -92,12 +92,12 @@ public class PretServlet extends HttpServlet {
 
         String action = request.getParameter("action");
         double montant = Double.valueOf(request.getParameter("montant").toString());
-        String montant_str = request.getParameter("montant_str").toString();
-        int moisRemboursement = Integer.valueOf(request.getParameter("mois").toString()); 
         int compte_id = Integer.valueOf(request.getParameter("compte").toString());
         CompteCourant compte = compteCourantDAO.findById(compte_id);
         PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compte_id);
         Pret temp = null;
+
+        List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte_id);
 
         if (pretImpaye != null) {
             temp = pretDAO.findById(pretImpaye.getPret().getId());
@@ -115,36 +115,53 @@ public class PretServlet extends HttpServlet {
         // }
 
         if ("demander".equals(action)) {
-            if (temp != null) {
-                double resteApaye = PSE.resteAPaye(temp.getId());
+            // if (temp != null) {
+            // double resteApaye = PSE.resteAPaye(temp.getId());
 
-                request.setAttribute("compte", compte);
-                request.setAttribute("error", "Vous avez encore un pret de " + resteApaye + " MGA à rembourser : " + pretImpaye.getStatut().getType() + " " + pretImpaye.getPret().getMontant() );
-                request.getRequestDispatcher("/pret.jsp").forward(request, response);
-            } else {
-                PSE.demanderPret(montant, compte, currDate, moisRemboursement);
-                request.setAttribute("compte", compte);
-                request.setAttribute("message", "Prêt réussi avec succès");
-                request.setAttribute("montant_str", montant_str);
-                request.setAttribute("downloadPDF", true); // ✅ Indique au JSP de déclencher le téléchargement
-                request.getRequestDispatcher("/pret.jsp").forward(request, response);
-            }
+            // request.setAttribute("compte", compte);
+            // request.setAttribute("error", "Vous avez encore un pret de " + resteApaye + "
+            // MGA à rembourser : " + pretImpaye.getStatut().getType() + " " +
+            // pretImpaye.getPret().getMontant() );
+            // request.getRequestDispatcher("/pret.jsp").forward(request, response);
+            // } else {
+            // PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+            // request.setAttribute("compte", compte);
+            // request.setAttribute("message", "Prêt réussi avec succès");
+            // request.setAttribute("montant_str", montant_str);
+            // request.setAttribute("downloadPDF", true);
+            // request.getRequestDispatcher("/pret.jsp").forward(request, response);
+            // }
+            String montant_str = request.getParameter("montant_str").toString();
+            int moisRemboursement = Integer.valueOf(request.getParameter("mois").toString());
+            PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+            request.setAttribute("compte", compte);
+            request.setAttribute("message", "Prêt réussi avec succès");
+            request.setAttribute("montant_str", montant_str);
+            request.setAttribute("downloadPDF", true);
+            request.getRequestDispatcher("/pret.jsp").forward(request, response);
+
         } else if ("rembourser".equals(action)) {
 
-            if (temp == null) {
+            int pret_id = Integer.valueOf(request.getParameter("pret").toString());
+            Pret rembourserPret = pretDAO.findById(pret_id);
 
+            // if (temp == null) {
+            if (pretStatuts == null || pretStatuts.isEmpty()) {
+                
                 request.setAttribute("compte", compte);
                 request.setAttribute("error", "Vous n'avez plus de pret à rembourser");
                 request.getRequestDispatcher("/pret.jsp").forward(request, response);
             } else {
-                double resteApaye = PSE.resteAPaye(temp.getId());
+                // double resteApaye = PSE.resteAPaye(temp.getId());
+                double resteApaye = PSE.resteAPaye(rembourserPret.getId());
+
                 double newReste = resteApaye - montant;
                 request.setAttribute("message", "Vous avez rembourser une partie de votre pret");
                 if (newReste < 0) {
                     double montantApaye = montant - newReste;
 
-                    PSE.rembourserPret(temp, compte, montantApaye, currDate, operationDAO);
-
+                    // PSE.rembourserPret(temp, compte, montantApaye, currDate, operationDAO);
+                    PSE.rembourserPret(rembourserPret, compte, montantApaye, currDate, operationDAO);
                     TypesStatut type = typeStatutDAO.findByType("Rembourse");
 
                     PretStatut pretStatut = new PretStatut(temp, type, currDate);
@@ -152,12 +169,15 @@ public class PretServlet extends HttpServlet {
                     request.setAttribute("message", "Vous avez rembourser la totalite de votre pret");
                 } else {
 
-                    PSE.rembourserPret(temp, compte, montant, currDate, operationDAO);
+                    // PSE.rembourserPret(temp, compte, montant, currDate, operationDAO);
 
+                    PSE.rembourserPret(rembourserPret, compte, montant, currDate, operationDAO);
+                    
                     if (newReste == 0) {
                         TypesStatut type = typeStatutDAO.findByType("Rembourse");
 
-                        PretStatut pretStatut = new PretStatut(temp, type, currDate);
+                        // PretStatut pretStatut = new PretStatut(temp, type, currDate);
+                        PretStatut pretStatut = new PretStatut(rembourserPret, type, currDate);
                         pretStatutDAO.save(pretStatut);
 
                         request.setAttribute("message", "Vous avez rembourser la totalite de votre pret");

@@ -99,7 +99,7 @@
 </div>
 
 <!-- Prêts Impayés -->
-<h2>Prêts Impayés</h2>
+<%-- <h2>Prêts Impayés</h2>
 <div class="card-container">
 <% if (prets != null && !prets.isEmpty()) { 
        for (PretStatut p : prets) { 
@@ -117,7 +117,7 @@
 <%     }
    } else { %>
     <p>Aucun prêt impayé.</p>
-<% } %>
+<% } %> --%>
 </div>
 
 </body>
