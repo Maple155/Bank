@@ -29,13 +29,13 @@ public class OperationCourantServlet extends HttpServlet {
     private OperationDAO operationDAO;
     @EJB
     private OperationServiceEJB OSE;
-    @EJB 
+    @EJB
     private PretDAO pretDAO;
     @EJB
     private PretServiceEJB PSE;
-    @EJB 
+    @EJB
     private BanqueDAO banqueDAO;
-    @EJB 
+    @EJB
     private TransactionDAO transactionDAO;
 
     @Override
@@ -82,6 +82,23 @@ public class OperationCourantServlet extends HttpServlet {
             }
             List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
             List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
+
+            List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+
+            if (!pretStatuts.isEmpty()|| pretStatuts != null) {
+                request.setAttribute("pretStatus", pretStatuts);
+                
+                for (PretStatut pretStatut : pretStatuts) {
+                    Pret tempPretImpaye = pretDAO.findById(pretStatut.getPret().getId());
+                    List<Remboursement> tempRemboursements = pretDAO.getRemboursementByPret(tempPretImpaye.getId());
+                    double tempResteAPayePret = PSE.resteAPaye(tempPretImpaye.getId());
+
+                    request.setAttribute("pretImpaye_" + pretStatut.getId(), tempPretImpaye);
+                    request.setAttribute("remboursements_" + pretStatut.getId(), tempRemboursements);
+                    request.setAttribute("resteAPaye_" + pretStatut.getId(), tempResteAPayePret);
+                    
+                }
+            }
 
             request.setAttribute("sender", transactionsSender);
             request.setAttribute("receiver", transactionsReceiver);
@@ -130,7 +147,24 @@ public class OperationCourantServlet extends HttpServlet {
 
                 List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
                 List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
+
+                List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+
+                if (!pretStatuts.isEmpty()|| pretStatuts != null) {
+                    request.setAttribute("pretStatus", pretStatuts);
+                    
+                    for (PretStatut pretStatut : pretStatuts) {
+                        Pret tempPretImpaye = pretDAO.findById(pretStatut.getPret().getId());
+                        List<Remboursement> tempRemboursements = pretDAO.getRemboursementByPret(tempPretImpaye.getId());
+                        double tempResteAPayePret = PSE.resteAPaye(tempPretImpaye.getId());
     
+                        request.setAttribute("pretImpaye_" + pretStatut.getId(), tempPretImpaye);
+                        request.setAttribute("remboursements_" + pretStatut.getId(), tempRemboursements);
+                        request.setAttribute("resteAPaye_" + pretStatut.getId(), tempResteAPayePret);
+                        
+                    }
+                }
+
                 request.setAttribute("sender", transactionsSender);
                 request.setAttribute("receiver", transactionsReceiver);
                 request.setAttribute("solde", solde);

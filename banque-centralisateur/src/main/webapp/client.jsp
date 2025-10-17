@@ -21,6 +21,8 @@
 
     List<Transaction> transactionsSender = (List<Transaction>) request.getAttribute("sender");
     List<Transaction> transactionsReceiver = (List<Transaction>) request.getAttribute("receiver");
+
+    List<PretStatut> pretStatuts = (List<PretStatut>) request.getAttribute("pretStatus"); 
 %>
 
 <!DOCTYPE html>
@@ -54,11 +56,12 @@
                 <p class="balance-footer">Compte N° <%= compte.getNumero() %></p>
             </div>
         </header>
-
+        <br>
         <!-- Opérations -->
         <% if (operationsCourant != null && !operationsCourant.isEmpty()) { %>
         <section class="operations-section">
             <h2>📋 Opérations courantes</h2>
+            <br>
             <div class="cards-grid">
                 <% for(OperationCourant op : operationsCourant) { %>
                 <article class="operation-card <%= op.getMontant() >= 0 ? "credit" : "debit" %>">
@@ -75,11 +78,12 @@
             </div>
         </section>
         <% } %>
-
+        <br>
         <!-- Transactions envoyées -->
         <% if (transactionsSender != null && !transactionsSender.isEmpty()) { %>
         <section class="transactions-sent-section">
             <h2>💸 Transactions envoyées</h2>
+            <br>
             <div class="transactions-list">
                 <% for(Transaction t : transactionsSender) { %>
                 <article class="transaction-card sent">
@@ -96,11 +100,12 @@
             </div>
         </section>
         <% } %>
-
+        <br>
         <!-- Transactions reçues -->
         <% if (transactionsReceiver != null && !transactionsReceiver.isEmpty()) { %>
         <section class="transactions-received-section">
             <h2>💰 Transactions reçues</h2>
+            <br>
             <div class="transactions-list">
                 <% for(Transaction t : transactionsReceiver) { %>
                 <article class="transaction-card received">
@@ -117,28 +122,71 @@
             </div>
         </section>
         <% } %>
-
+        <br>
         <!-- Prêts -->
         <% if (prets != null && !prets.isEmpty()) { %>
         <section class="loans-section">
             <h2>🏦 Prêts associés</h2>
+            <br>
             <div class="loans-grid">
                 <% for(Pret p : prets) { 
                     double reste = (pretImpaye != null && p.getId() == pretImpaye.getId()) ? resteAPaye : 0;
                     boolean isPaid = reste == 0;
                 %>
-                <article class="loan-card <%= isPaid ? "paid" : "active" %>">
+                <%-- <article class="loan-card <%= isPaid ? "paid" : "active" %>"> --%>
+                <article class="loan-card <%= isPaid ? "paid" : "paid" %>">
                     <header class="loan-header">
-                        <span class="loan-badge <%= isPaid ? "badge-success" : "badge-warning" %>">
-                            <%= isPaid ? "✓ Rembourse" : "⏳ En cours" %>
-                        </span>
                         <p class="loan-amount-main"><%= String.format("%,.2f", p.getMontant()) %> MGA</p>
                     </header>
                     <div class="loan-details">
                         <p>Date accord : <%= p.getDate_accord() %></p>
                         <p>Taux d'intérêt : <%= String.format("%.2f", p.getTaux()) %>%</p>
-                        <p>Reste à payer : <span class="<%= isPaid ? "paid-text" : "due-text" %>"><%= String.format("%,.2f", reste) %> MGA</span></p>
                     </div>
+                </article>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <br>
+        <% if (pretStatuts != null && !pretStatuts.isEmpty()) { %>
+        <section class="pret-impayes-section">
+            <h2>💼 Prêts impayés</h2>
+            <br>
+            <div class="loans-grid">
+                <% 
+                for (PretStatut ps : pretStatuts) { 
+                    Pret pretImpayeX = (Pret) request.getAttribute("pretImpaye_" + ps.getId());
+                    List<Remboursement> remboursementsX = (List<Remboursement>) request.getAttribute("remboursements_" + ps.getId());
+                    double resteAPayeX = (double) request.getAttribute("resteAPaye_" + ps.getId());
+                %>
+                <article class="loan-card">
+                    <header class="loan-header">
+                        <span class="loan-badge badge-warning">⏳ En cours</span>
+                        <br>
+                        <p class="loan-amount-main"><%= String.format("%,.2f", pretImpayeX.getMontant()) %> MGA</p>
+                    </header>
+                    <br>
+                    <div class="loan-details">
+                        <p>Date accord : <%= pretImpayeX.getDate_accord() %></p>
+                        <p>Taux d'intérêt : <%= String.format("%.2f", pretImpayeX.getTaux()) %>%</p>
+                        <p>Reste à payer : <span class="due-text"><%= String.format("%,.2f", resteAPayeX) %> MGA</span></p>
+                    </div>
+                    <br>
+                    <% if (remboursementsX != null && !remboursementsX.isEmpty()) { %>
+                    <div class="remboursements">
+                        <h4>Remboursements :</h4>
+                        <ul>
+                        <br>
+                            <% for (Remboursement r : remboursementsX) { %>
+                            <li>
+                                <%= r.getDateRemboursement() %> – 
+                                <%= String.format("%,.2f", r.getMontant()) %> MGA
+                            </li>
+                            <br>
+                            <% } %>
+                        </ul>
+                    </div>
+                    <% } %>
                 </article>
                 <% } %>
             </div>

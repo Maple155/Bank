@@ -66,6 +66,23 @@ public class ConnexionServlet extends HttpServlet {
 
             List<Pret> prets = pretDAO.findByCompte(compte.getId());
             PretStatut pret = PSE.getPretsImpayesByCompte(compte.getId());
+            List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+
+            if (!pretStatuts.isEmpty()|| pretStatuts != null) {
+                request.setAttribute("pretStatus", pretStatuts);
+                
+                for (PretStatut pretStatut : pretStatuts) {
+                    Pret tempPretImpaye = pretDAO.findById(pretStatut.getPret().getId());
+                    List<Remboursement> tempRemboursements = pretDAO.getRemboursementByPret(tempPretImpaye.getId());
+                    double tempResteAPayePret = PSE.resteAPaye(tempPretImpaye.getId());
+
+                    request.setAttribute("pretImpaye_" + pretStatut.getId(), tempPretImpaye);
+                    request.setAttribute("remboursements_" + pretStatut.getId(), tempRemboursements);
+                    request.setAttribute("resteAPaye_" + pretStatut.getId(), tempResteAPayePret);
+                    
+                }
+            }
+
             Pret pretImpaye = null;
 
             List<Remboursement> remboursements = null;
