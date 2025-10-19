@@ -43,6 +43,10 @@ namespace BanqueDepot.Models
                       .HasColumnName("client_id")
                       .IsRequired();
 
+                entity.Property(e => e.Etat)
+                      .HasColumnName("etat")
+                      .IsRequired();
+                      
                 // // Relation avec les opérations
                 // entity.HasMany(e => e.Operations)
                 //       .WithOne(o => o.Compte)

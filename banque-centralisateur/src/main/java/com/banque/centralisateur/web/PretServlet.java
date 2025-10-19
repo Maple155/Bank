@@ -3,7 +3,18 @@ package com.banque.centralisateur.web;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import com.banque.courant.entity.*;
+import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.List;
+
+import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.dao.CompteCourantDAO;
+import com.banque.courant.dao.BanqueDAO;
+import com.banque.courant.dao.ClientDAO;
+import com.banque.courant.dao.OperationDAO;
+import com.banque.courant.ejb.OperationServiceEJB;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.dao.PretStatutDAO;
 import com.banque.pret.dao.TypeStatutDAO;
@@ -12,181 +23,162 @@ import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.Pret;
 import com.banque.pret.entity.PretStatut;
 import com.banque.pret.entity.Remboursement;
-import com.banque.entity.*;
-import com.banque.courant.dao.*;
-import com.banque.courant.ejb.OperationServiceEJB;
-import jakarta.servlet.http.*;
-import java.io.IOException;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.List;
+import com.banque.entity.TypesStatut;
 
 @WebServlet("/pret")
 public class PretServlet extends HttpServlet {
 
-    @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private OperationServiceEJB OSE;
-    @EJB
-    private PretDAO pretDAO;
-    @EJB
-    private PretServiceEJB PSE;
-    @EJB
-    private BanqueDAO banqueDAO;
-    @EJB
-    private TypeStatutDAO typeStatutDAO;
-    @EJB
-    private PretStatutDAO pretStatutDAO;
+    @EJB private ClientDAO clientDAO;
+    @EJB private CompteCourantDAO compteCourantDAO;
+    @EJB private OperationDAO operationDAO;
+    @EJB private OperationServiceEJB OSE;
+    @EJB private PretDAO pretDAO;
+    @EJB private PretServiceEJB PSE;
+    @EJB private BanqueDAO banqueDAO;
+    @EJB private TypeStatutDAO typeStatutDAO;
+    @EJB private PretStatutDAO pretStatutDAO;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String download = req.getParameter("download");
         int compteId = Integer.parseInt(req.getParameter("compte"));
         CompteCourant compte = compteCourantDAO.findById(compteId);
+        String download = req.getParameter("download");
 
-        // 🔹 Cas 1 : téléchargement du PDF
         if ("1".equals(download)) {
-            PretStatut pret = PSE.getPretsImpayesByCompte(compteId);
-            Pret temPret = pretDAO.findById(pret.getPret().getId());
-            String montant_str = req.getParameter("montant").toString();
-            // Banque banque = banqueDAO.findById(1);
+            genererPDF(req, resp, compte);
+        } else {
+            req.setAttribute("compte", compte);
+            req.getRequestDispatcher("/pret.jsp").forward(req, resp);
+        }
+    }
 
-            resp.setContentType("application/pdf");
-            resp.setHeader("Content-Disposition", "attachment; filename=contrat_pret.pdf");
+    private void genererPDF(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte)
+            throws IOException {
 
-            PDFservice.genererContratPret(
-                    resp.getOutputStream(),
-                    // banque.getNom(),
-                    "Ma Banque",
-                    compte.getClient().getNom() + " " + compte.getClient().getPrenom(),
-                    temPret.getMontant().toString(),
-                    montant_str + " MGA",
-                    // "vingt millions MGA",
-                    // banque.getSiege(),
-                    "Antananarivo",
-                    // LocalDate.now(),
-                    temPret.getDate_accord().toLocalDate(),
-                    LocalDate.now().plusMonths(temPret.getNbrMois())
-            // LocalDate.now().plusMonths(6)
-            );
-
-            resp.flushBuffer();
+        List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+        // PretStatut pretStatut = PSE.getPretsImpayesByCompte(compte.getId());
+        if (pretStatuts == null)
             return;
+
+        Pret pret = pretDAO.findById(pretStatuts.get(pretStatuts.size() - 1).getId());
+        String montant_str = req.getParameter("montant");
+
+        resp.setContentType("application/pdf");
+        resp.setHeader("Content-Disposition", "attachment; filename=contrat_pret.pdf");
+
+        PDFservice.genererContratPret(
+                resp.getOutputStream(),
+                "Ma Banque",
+                compte.getClient().getNom() + " " + compte.getClient().getPrenom(),
+                pret.getMontant().toString(),
+                montant_str + " MGA",
+                "Antananarivo",
+                pret.getDate_accord().toLocalDate(),
+                LocalDate.now().plusMonths(pret.getNbrMois()));
+
+        resp.flushBuffer();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        String action = req.getParameter("action");
+        int compteId = Integer.parseInt(req.getParameter("compte"));
+        CompteCourant compte = compteCourantDAO.findById(compteId);
+        Date currDate = Date.valueOf(LocalDate.now());
+
+        if (compte.getEtat().equalsIgnoreCase("ferme")) {
+            req.setAttribute("compte", compte);
+            req.setAttribute("error", "Ce compte est ferme");
+            req.getRequestDispatcher("/pret.jsp").forward(req, resp);
         }
 
-        // 🔹 Cas 2 : affichage normal de la page
+        switch (action.toLowerCase()) {
+            case "demander":
+                demanderPret(req, resp, compte, currDate);
+                break;
+            case "rembourser":
+                rembourserPret(req, resp, compte, currDate);
+                break;
+            default:
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue : " + action);
+                break;
+        }
+    }
+
+    private void demanderPret(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte, Date currDate)
+            throws ServletException, IOException {
+
+        double montant = Double.parseDouble(req.getParameter("montant"));
+        String montant_str = req.getParameter("montant_str");
+        int moisRemboursement = Integer.parseInt(req.getParameter("mois"));
+
+        if (montant <= 0 || moisRemboursement <= 0) {
+            req.setAttribute("error", "Montant et durée invalides");
+            return;
+        }
+        
+        // PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compte.getId());
+        // List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+
+        // if (pretImpaye != null) {
+        //     double resteApaye = PSE.resteAPaye(pretImpaye.getPret().getId());
+        //     req.setAttribute("compte", compte);
+        //     req.setAttribute("error", "Vous avez encore un prêt de " + resteApaye + " MGA à rembourser.");
+        // }
+        
+        else {
+            PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+            req.setAttribute("message", "Prêt réussi avec succès");
+            req.setAttribute("montant_str", montant_str);
+            req.setAttribute("downloadPDF", true);
+        }
+            
         req.setAttribute("compte", compte);
         req.getRequestDispatcher("/pret.jsp").forward(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    private void rembourserPret(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte, Date currDate)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        double montant = Double.valueOf(request.getParameter("montant").toString());
-        int compte_id = Integer.valueOf(request.getParameter("compte").toString());
-        CompteCourant compte = compteCourantDAO.findById(compte_id);
-        PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compte_id);
-        Pret temp = null;
+        int pretId = Integer.parseInt(req.getParameter("pret"));
+        double montant = Double.parseDouble(req.getParameter("montant"));
 
-        List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte_id);
+        Pret pret = pretDAO.findById(pretId);
+        double resteApaye = PSE.resteAPaye(pret.getId());
+        
+        if (resteApaye <= 0) {
+            req.setAttribute("compte", compte);
+            req.setAttribute("error", "Vous n'avez plus de prêt à rembourser");
+        } else {
+            double nouveauReste = resteApaye - montant;
+            double montantAPayer = montant;
 
-        if (pretImpaye != null) {
-            temp = pretDAO.findById(pretImpaye.getPret().getId());
-        }
-
-        // Banque banque = banqueDAO.findById(1);
-        Date currDate = Date.valueOf(LocalDate.now());
-        // double soldeActuel = OSE.getSoldeActuel(compte_id);
-
-        // if (soldeActuel < montant) {
-        // request.setAttribute("compte", compte);
-        // request.setAttribute("error", "Votre solde actuel est inferieur à " +
-        // montant);
-        // request.getRequestDispatcher("/Pret.jsp").forward(request, response);
-        // }
-
-        if ("demander".equals(action)) {
-            // if (temp != null) {
-            // double resteApaye = PSE.resteAPaye(temp.getId());
-
-            // request.setAttribute("compte", compte);
-            // request.setAttribute("error", "Vous avez encore un pret de " + resteApaye + "
-            // MGA à rembourser : " + pretImpaye.getStatut().getType() + " " +
-            // pretImpaye.getPret().getMontant() );
-            // request.getRequestDispatcher("/pret.jsp").forward(request, response);
-            // } else {
-            // PSE.demanderPret(montant, compte, currDate, moisRemboursement);
-            // request.setAttribute("compte", compte);
-            // request.setAttribute("message", "Prêt réussi avec succès");
-            // request.setAttribute("montant_str", montant_str);
-            // request.setAttribute("downloadPDF", true);
-            // request.getRequestDispatcher("/pret.jsp").forward(request, response);
-            // }
-            String montant_str = request.getParameter("montant_str").toString();
-            int moisRemboursement = Integer.valueOf(request.getParameter("mois").toString());
-            PSE.demanderPret(montant, compte, currDate, moisRemboursement);
-            request.setAttribute("compte", compte);
-            request.setAttribute("message", "Prêt réussi avec succès");
-            request.setAttribute("montant_str", montant_str);
-            request.setAttribute("downloadPDF", true);
-            request.getRequestDispatcher("/pret.jsp").forward(request, response);
-
-        } else if ("rembourser".equals(action)) {
-
-            int pret_id = Integer.valueOf(request.getParameter("pret").toString());
-            Pret rembourserPret = pretDAO.findById(pret_id);
-
-            // if (temp == null) {
-            if (pretStatuts == null || pretStatuts.isEmpty()) {
-                
-                request.setAttribute("compte", compte);
-                request.setAttribute("error", "Vous n'avez plus de pret à rembourser");
-                request.getRequestDispatcher("/pret.jsp").forward(request, response);
+            double solde = OSE.getSoldeActuel(compte.getId());
+            
+            if (nouveauReste < 0) montantAPayer = montant + nouveauReste;
+            
+            if (montantAPayer > solde) { 
+                req.setAttribute("error", "Votre solde est insuffisant pour ce montant");
             } else {
-                // double resteApaye = PSE.resteAPaye(temp.getId());
-                double resteApaye = PSE.resteAPaye(rembourserPret.getId());
-
-                double newReste = resteApaye - montant;
-                request.setAttribute("message", "Vous avez rembourser une partie de votre pret");
-                if (newReste < 0) {
-                    double montantApaye = montant - newReste;
-
-                    // PSE.rembourserPret(temp, compte, montantApaye, currDate, operationDAO);
-                    PSE.rembourserPret(rembourserPret, compte, montantApaye, currDate, operationDAO);
+                PSE.rembourserPret(pret, compte, montantAPayer, currDate, operationDAO);
+                
+                if (nouveauReste <= 0) {
                     TypesStatut type = typeStatutDAO.findByType("Rembourse");
-
-                    PretStatut pretStatut = new PretStatut(temp, type, currDate);
-                    pretStatutDAO.save(pretStatut);
-                    request.setAttribute("message", "Vous avez rembourser la totalite de votre pret");
+                    PretStatut statut = new PretStatut(pret, type, currDate);
+                    pretStatutDAO.save(statut);
+                    req.setAttribute("message", "Vous avez remboursé la totalité de votre prêt");
                 } else {
-
-                    // PSE.rembourserPret(temp, compte, montant, currDate, operationDAO);
-
-                    PSE.rembourserPret(rembourserPret, compte, montant, currDate, operationDAO);
-                    
-                    if (newReste == 0) {
-                        TypesStatut type = typeStatutDAO.findByType("Rembourse");
-
-                        // PretStatut pretStatut = new PretStatut(temp, type, currDate);
-                        PretStatut pretStatut = new PretStatut(rembourserPret, type, currDate);
-                        pretStatutDAO.save(pretStatut);
-
-                        request.setAttribute("message", "Vous avez rembourser la totalite de votre pret");
-                    }
+                    req.setAttribute("message", "Vous avez remboursé une partie de votre prêt");
                 }
-
-                request.setAttribute("compte", compte);
-                request.getRequestDispatcher("/pret.jsp").forward(request, response);
             }
         }
+
+        req.setAttribute("compte", compte);
+        req.getRequestDispatcher("/pret.jsp").forward(req, resp);
+
     }
 }

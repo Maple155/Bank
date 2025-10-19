@@ -3,47 +3,38 @@ package com.banque.centralisateur.web;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import com.banque.courant.entity.*;
-import com.banque.courant.ejb.*;
-import com.banque.entity.*;
-import com.banque.pret.dao.PretDAO;
-import com.banque.pret.ejb.PretServiceEJB;
-import com.banque.pret.entity.Pret;
-import com.banque.pret.entity.PretStatut;
-import com.banque.pret.entity.Remboursement;
-import com.banque.courant.dao.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.banque.courant.dao.*;
+import com.banque.courant.ejb.*;
+import com.banque.courant.entity.*;
+import com.banque.entity.*;
+import com.banque.pret.dao.PretDAO;
+import com.banque.pret.ejb.PretServiceEJB;
+import com.banque.pret.entity.*;
+
 @WebServlet("/operation")
 public class OperationCourantServlet extends HttpServlet {
 
-    @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private OperationServiceEJB OSE;
-    @EJB
-    private PretDAO pretDAO;
-    @EJB
-    private PretServiceEJB PSE;
-    @EJB
-    private BanqueDAO banqueDAO;
-    @EJB
-    private TransactionDAO transactionDAO;
+    @EJB private ClientDAO clientDAO;
+    @EJB private CompteCourantDAO compteCourantDAO;
+    @EJB private OperationDAO operationDAO;
+    @EJB private OperationServiceEJB operationService;
+    @EJB private PretDAO pretDAO;
+    @EJB private PretServiceEJB pretService;
+    @EJB private BanqueDAO banqueDAO;
+    @EJB private TransactionDAO transactionDAO;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        int compte_id = Integer.valueOf(req.getParameter("compte").toString());
-        CompteCourant compte = compteCourantDAO.findById(compte_id);
+        int compteId = Integer.parseInt(req.getParameter("compte"));
+        CompteCourant compte = compteCourantDAO.findById(compteId);
 
         req.setAttribute("compte", compte);
         req.getRequestDispatcher("/operation.jsp").forward(req, resp);
@@ -52,134 +43,139 @@ public class OperationCourantServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
 
         String action = request.getParameter("action");
-        double montant = Double.valueOf(request.getParameter("montant").toString());
-        int compte_id = Integer.valueOf(request.getParameter("compte").toString());
-        CompteCourant compte = compteCourantDAO.findById(compte_id);
-        double solde = OSE.getSoldeActuel(compte_id);
-        Date currDate = Date.valueOf(LocalDate.now());
+        double montant = Double.parseDouble(request.getParameter("montant"));
+        int compteId = Integer.parseInt(request.getParameter("compte"));
 
-        response.getWriter().write("<h1> 0 </h1>");
-        if ("crediter".equals(action)) {
-            OperationCourant opc = new OperationCourant(compte, montant, currDate);
-            operationDAO.save(opc);
+        CompteCourant compte = compteCourantDAO.findById(compteId);
+        double solde = operationService.getSoldeActuel(compteId);
 
-            solde = OSE.getSoldeActuel(compte_id);
-
-            List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
-
-            List<Pret> prets = pretDAO.findByCompte(compte.getId());
-            PretStatut pret = PSE.getPretsImpayesByCompte(compte.getId());
-            Pret pretImpaye = null;
-            List<Remboursement> remboursements = null;
-            double resteAPayePret = 0.0;
-            if (pret != null) {
-                pretImpaye = pretDAO.findById(pret.getPret().getId());
-                remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
-                resteAPayePret = PSE.resteAPaye(pretImpaye.getId());
-            }
-            List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
-            List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
-
-            List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
-
-            if (!pretStatuts.isEmpty()|| pretStatuts != null) {
-                request.setAttribute("pretStatus", pretStatuts);
-                
-                for (PretStatut pretStatut : pretStatuts) {
-                    Pret tempPretImpaye = pretDAO.findById(pretStatut.getPret().getId());
-                    List<Remboursement> tempRemboursements = pretDAO.getRemboursementByPret(tempPretImpaye.getId());
-                    double tempResteAPayePret = PSE.resteAPaye(tempPretImpaye.getId());
-
-                    request.setAttribute("pretImpaye_" + pretStatut.getId(), tempPretImpaye);
-                    request.setAttribute("remboursements_" + pretStatut.getId(), tempRemboursements);
-                    request.setAttribute("resteAPaye_" + pretStatut.getId(), tempResteAPayePret);
-                    
-                }
-            }
-
-            request.setAttribute("sender", transactionsSender);
-            request.setAttribute("receiver", transactionsReceiver);
-            request.setAttribute("solde", solde);
-            request.setAttribute("compte", compte);
-            request.setAttribute("operationsCourant", operationsCourant);
-            request.setAttribute("pretImpaye", pretImpaye);
-            request.setAttribute("prets", prets);
-            request.setAttribute("remboursements", remboursements);
-            request.setAttribute("resteAPaye", resteAPayePret);
-            request.setAttribute("message", "Creditation reussi");
-            response.getWriter().write("<h1> 1 </h1>");
-            request.getRequestDispatcher("/client.jsp").forward(request, response);
+        if (compte == null) {
+            request.setAttribute("error", "Compte introuvable !");
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
             return;
-        } else if ("debiter".equals(action)) {
+        } else if (compte.getEtat().equalsIgnoreCase("ferme")) {
+            request.setAttribute("compte", compte);
+            request.setAttribute("error",
+                    "Ce compte n'est plus ouvert");
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
+            return;
+        }
 
-            response.getWriter().write("<h1> 4 </h1>");
+        switch (action) {
+            case "crediter": 
+                handleCredit(request, response, compte, montant);
+                break;
+            case "debiter": 
+                handleDebit(request, response, compte, montant, solde);
+                break;
+            default: 
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue");
+                break;
+        }
+    }
 
-            if (solde < montant) {
-                request.setAttribute("compte", compte);
-                request.setAttribute("error",
-                        "Vous ne pouvez pas debiter cette montant votre solde est de " + solde + " MGA ");
+    /** ---------------------- HANDLERS ---------------------- **/
 
-                response.getWriter().write("<h1> 2 </h1>");
-                request.getRequestDispatcher("/operation.jsp").forward(request, response);
-                return;
-            } else {
-                montant = montant * -1;
-                OperationCourant opc = new OperationCourant(compte, montant, currDate);
-                operationDAO.save(opc);
+    private void handleCredit(HttpServletRequest request, HttpServletResponse response,
+                              CompteCourant compte, double montant)
+            throws ServletException, IOException {
 
-                solde = OSE.getSoldeActuel(compte_id);
+        Date date = Date.valueOf(LocalDate.now());
+        int minimum = 0;
+        if (montant <= 0) {
+            request.setAttribute("compte", compte);
+            request.setAttribute("error",
+                    "Le montant à crediter doit etre positif et superieur à " + minimum);
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
+            return;
+        }
 
-                List<OperationCourant> operationsCourant = operationDAO.findByCompte(compte.getId());
+        operationDAO.save(new OperationCourant(compte, montant, date));
+        double solde = operationService.getSoldeActuel(compte.getId());
+        prepareClientView(request, compte, solde, "Crédit effectué avec succès");
+        request.getRequestDispatcher("/client.jsp").forward(request, response);
+    }
 
-                List<Pret> prets = pretDAO.findByCompte(compte.getId());
-                PretStatut pret = PSE.getPretsImpayesByCompte(compte.getId());
-                Pret pretImpaye = null;
-                List<Remboursement> remboursements = null;
-                double resteAPayePret = 0.0;
-                if (pret != null) {
-                    pretImpaye = pretDAO.findById(pret.getPret().getId());
-                    remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
-                    resteAPayePret = PSE.resteAPaye(pretImpaye.getId());
-                }
+    private void handleDebit(HttpServletRequest request, HttpServletResponse response,
+                             CompteCourant compte, double montant, double solde)
+            throws ServletException, IOException {
+        
+        int minimum = 0;
+        
+        if (solde < montant) {
+            request.setAttribute("compte", compte);
+            request.setAttribute("error",
+                    "Solde insuffisant : votre solde actuel est de " + solde + " MGA.");
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
+            return;
+        } else if (montant <= 0) {
+            request.setAttribute("compte", compte);
+            request.setAttribute("error",
+                    "Le montant à debiter doit etre positif et superieur à " + minimum);
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
+            return;
+        }
 
-                List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
-                List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
+        Date date = Date.valueOf(LocalDate.now());
+        operationDAO.save(new OperationCourant(compte, -montant, date));
 
-                List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
+        double nouveauSolde = operationService.getSoldeActuel(compte.getId());
+        prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");
+        request.getRequestDispatcher("/client.jsp").forward(request, response);
+    }
 
-                if (!pretStatuts.isEmpty()|| pretStatuts != null) {
-                    request.setAttribute("pretStatus", pretStatuts);
-                    
-                    for (PretStatut pretStatut : pretStatuts) {
-                        Pret tempPretImpaye = pretDAO.findById(pretStatut.getPret().getId());
-                        List<Remboursement> tempRemboursements = pretDAO.getRemboursementByPret(tempPretImpaye.getId());
-                        double tempResteAPayePret = PSE.resteAPaye(tempPretImpaye.getId());
-    
-                        request.setAttribute("pretImpaye_" + pretStatut.getId(), tempPretImpaye);
-                        request.setAttribute("remboursements_" + pretStatut.getId(), tempRemboursements);
-                        request.setAttribute("resteAPaye_" + pretStatut.getId(), tempResteAPayePret);
-                        
-                    }
-                }
+    /** ---------------------- UTILITAIRES ---------------------- **/
 
-                request.setAttribute("sender", transactionsSender);
-                request.setAttribute("receiver", transactionsReceiver);
-                request.setAttribute("solde", solde);
-                request.setAttribute("compte", compte);
-                request.setAttribute("operationsCourant", operationsCourant);
-                request.setAttribute("pretImpaye", pretImpaye);
-                request.setAttribute("prets", prets);
-                request.setAttribute("remboursements", remboursements);
-                request.setAttribute("resteAPaye", resteAPayePret);
-                request.setAttribute("message", "Debite avec succes");
+    private void prepareClientView(HttpServletRequest request, CompteCourant compte,
+                                   double solde, String message) {
 
-                response.getWriter().write("<h1> 3 </h1>");
-                request.getRequestDispatcher("/client.jsp").forward(request, response);
-                return;
-            }
+        List<OperationCourant> operations = operationDAO.findByCompte(compte.getId());
+        List<Pret> prets = pretDAO.findByCompte(compte.getId());
+        List<PretStatut> pretStatuts = pretService.getPretsImpayesListByCompte(compte.getId());
+        PretStatut pretUnique = pretService.getPretsImpayesByCompte(compte.getId());
+
+        // Ajouter les informations de prêts impayés
+        addPretDetailsToRequest(request, pretStatuts);
+
+        Pret pretImpaye = null;
+        List<Remboursement> remboursements = null;
+        double resteAPaye = 0.0;
+
+        if (pretUnique != null) {
+            pretImpaye = pretDAO.findById(pretUnique.getPret().getId());
+            remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
+            resteAPaye = pretService.resteAPaye(pretImpaye.getId());
+        }
+
+        List<Transaction> sender = transactionDAO.findBySender(compte.getId());
+        List<Transaction> receiver = transactionDAO.findByReceiver(compte.getId());
+
+        request.setAttribute("compte", compte);
+        request.setAttribute("solde", solde);
+        request.setAttribute("operationsCourant", operations);
+        request.setAttribute("prets", prets);
+        request.setAttribute("pretImpaye", pretImpaye);
+        request.setAttribute("remboursements", remboursements);
+        request.setAttribute("resteAPaye", resteAPaye);
+        request.setAttribute("pretStatus", pretStatuts);
+        request.setAttribute("sender", sender);
+        request.setAttribute("receiver", receiver);
+        request.setAttribute("message", message);
+    }
+
+    private void addPretDetailsToRequest(HttpServletRequest request, List<PretStatut> pretStatuts) {
+        if (pretStatuts == null || pretStatuts.isEmpty()) return;
+
+        for (PretStatut pretStatut : pretStatuts) {
+            Pret pret = pretDAO.findById(pretStatut.getPret().getId());
+            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
+            double resteAPaye = pretService.resteAPaye(pret.getId());
+
+            request.setAttribute("pretImpaye_" + pretStatut.getId(), pret);
+            request.setAttribute("remboursements_" + pretStatut.getId(), remboursements);
+            request.setAttribute("resteAPaye_" + pretStatut.getId(), resteAPaye);
         }
     }
 }

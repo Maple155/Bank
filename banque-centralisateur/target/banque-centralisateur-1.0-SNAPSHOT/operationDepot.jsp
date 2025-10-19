@@ -10,6 +10,16 @@
     double solde = Double.valueOf(request.getAttribute("solde").toString());
     String error = (String) request.getAttribute("error");
     List<OperationDepot> operations = (List<OperationDepot>) request.getAttribute("operations");
+    
+    double soldeInteret = 0;
+    double interet = 0;
+    int nbAnnee = 0;
+
+    if (request.getAttribute("soldeInteret") != null) {
+        nbAnnee = Integer.parseInt(request.getAttribute("nbAnnee").toString());
+        soldeInteret = Double.parseDouble(request.getAttribute("soldeInteret").toString());
+        interet = Double.parseDouble(request.getAttribute("interet").toString());
+    }
 %>
 
 <html>
@@ -25,8 +35,10 @@
 
 <div class="main-content">
     <h1>Débiter ou Créditer votre compte dépôt</h1>
-    <h3>Votre solde est actuellement de <%= solde %> MGA</h3>
-
+    <h3>Votre solde est actuellement de <%= solde %> MGA sans interet </h3>
+    <% if (request.getAttribute("soldeInteret") != null) { %>
+        <h3>Votre solde est actuellement de <%= soldeInteret %> MGA avec interet de <%= interet %> % </h3>
+    <% } %>
     <% if (error != null) { %>
         <h3 style="color:#dc2626;"><%= error %></h3>
     <% } %>

@@ -26,6 +26,8 @@ public class CompteCourant {
     @Column(name = "code_secret", nullable = false)
     private String code_secret;
 
+    @Column(name = "etat", nullable = false)
+    private String etat;
 
     // Constructeurs
     public CompteCourant() {}
@@ -34,6 +36,14 @@ public class CompteCourant {
         this.numero = numero;
         this.dateOuverture = dateOuverture;
         this.client = client;
+    }
+
+    public CompteCourant(String numero, Date dateOuverture, Client client, String code_secret, String etat) {
+        this.numero = numero;
+        this.dateOuverture = dateOuverture;
+        this.client = client;
+        this.code_secret = code_secret;
+        this.etat = etat;
     }
 
     // Getters & Setters
@@ -50,4 +60,7 @@ public class CompteCourant {
 
     public String getCode_secret() { return code_secret; }
     public void setCode_secret(String code_secret) { this.code_secret = code_secret; }
+
+    public String getEtat() { return etat; }
+    public void setEtat(String etat) { this.etat = etat; }
 }
