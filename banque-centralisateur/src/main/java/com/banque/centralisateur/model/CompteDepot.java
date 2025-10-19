@@ -19,6 +19,8 @@ public class CompteDepot {
 
     private int clientId;
 
+    private String etat;
+
     public CompteDepot() {
     }
 
@@ -28,8 +30,17 @@ public class CompteDepot {
         this.codeSecret = codeSecret;
         this.dateOuverture = dateOuverture;
         this.clientId = clientId;
+        this.etat = "ouvert";
     }
 
+    public CompteDepot(String numero, String codeSecret, LocalDateTime dateOuverture, int clientId, String etat) {
+        this.numero = numero;
+        this.codeSecret = codeSecret;
+        this.dateOuverture = dateOuverture;
+        this.clientId = clientId;
+        this.etat = etat;
+    }
+    
     // Getters et Setters
     public int getId() {
         return id;
@@ -70,4 +81,13 @@ public class CompteDepot {
     public void setClientId(int clientId) {
         this.clientId = clientId;
     }
+
+    public String getEtat() {
+        return etat;
+    }
+
+    public void setEtat(String etat) {
+        this.etat = etat;
+    }
+    
 }

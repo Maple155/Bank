@@ -146,7 +146,7 @@
         <h2>Rembourser un prêt</h2>
         <input type="hidden" name="action" value="rembourser">
 
-        <label>ID du prêt :</label>
+        <label>Reference du prêt :</label>
         <input type="number" min="0" name="pret" placeholder="ID du prêt à rembourser" required>
 
         <label>Montant à rembourser (MGA) :</label>

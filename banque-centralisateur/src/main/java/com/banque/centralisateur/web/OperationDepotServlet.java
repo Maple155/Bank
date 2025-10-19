@@ -4,19 +4,20 @@ import jakarta.ejb.EJB;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import com.banque.courant.entity.*;
-import com.banque.courant.ejb.*;
-import com.banque.entity.*;
+import jakarta.servlet.http.*;
+
+import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.centralisateur.ejb.CompteDepotEJB;
 import com.banque.centralisateur.ejb.OperationDepotEJB;
 import com.banque.centralisateur.model.CompteDepot;
 import com.banque.centralisateur.model.OperationDepot;
-import com.banque.courant.dao.*;
-import jakarta.servlet.http.*;
+import com.banque.courant.dao.ClientDAO;
+import com.banque.courant.ejb.OperationServiceEJB;
+
 import java.io.IOException;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @WebServlet("/operationDepot")
@@ -25,92 +26,159 @@ public class OperationDepotServlet extends HttpServlet {
     @Inject
     private CompteDepotEJB compteDepotEJB;
     @Inject
-    private OperationDepotEJB ODE;
+    private OperationDepotEJB operationDepotEJB;
 
     @EJB
     private ClientDAO clientDAO;
     @EJB
     private CompteCourantDAO compteCourantDAO;
     @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private OperationServiceEJB OSE;
-
-    // @Override
-    // protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-    //         throws ServletException, IOException {
-
-    //     int compte_id = Integer.valueOf(req.getParameter("compte").toString());
-    //     CompteCourant compte = compteCourantDAO.findById(compte_id);
-
-    //     req.setAttribute("compte", compte);
-    //     req.getRequestDispatcher("/operation.jsp").forward(req, resp);
-    // }
+    private OperationServiceEJB operationService;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        
-        String action = request.getParameter("action");
-        double montant = Double.valueOf(request.getParameter("montant").toString());
-        int compte_id = Integer.valueOf(request.getParameter("compteDepot").toString());
-        int compteCourant_id = Integer.valueOf(request.getParameter("compte").toString());
-        CompteDepot compteDepot = compteDepotEJB.getCompteDepot(compte_id);
-        CompteCourant compteCourant = compteCourantDAO.findById(compteCourant_id);
-        double solde = ODE.getSoldeByCompte(compte_id);
-        double half = solde - ((solde * 50) / 100);
-        LocalDateTime currDate = LocalDateTime.now();
 
-        request.setAttribute("compte", compteCourant);
-        request.setAttribute("compteDepot", compteDepot);
+        try {
+            String action = request.getParameter("action");
+            if (action == null) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action manquante");
+                return;
+            }
 
-        if ("crediter".equals(action)) {
-            OperationDepot opd = new OperationDepot(compte_id, montant, currDate);
-            ODE.createOperation(opd);
+            double montant = Double.parseDouble(request.getParameter("montant"));
+            int compteDepotId = Integer.parseInt(request.getParameter("compteDepot"));
+            int compteCourantId = Integer.parseInt(request.getParameter("compte"));
+
+            CompteDepot compteDepot = compteDepotEJB.getCompteDepot(compteDepotId);
+            CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
             
-            // ODE.crediterCompte(compteDepot, compteCourant, montant, currDate);
-
-            solde = ODE.getSoldeByCompte(compte_id);
-
-            List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
-
-            request.setAttribute("operations", operationDepots);
-            request.setAttribute("solde", solde);
-            request.setAttribute("message", "Creditation reussi");
-
-            request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
-            return;
-        } else if ("debiter".equals(action)) {
-
-            if (solde < montant || half < montant) {
-                request.setAttribute("error", "Vous ne pouvez pas debiter qu'une montant inferieur ou egale à " + half + " MGA ");
-
-                List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
-
-                request.setAttribute("operations", operationDepots);
-                solde = ODE.getSoldeByCompte(compte_id);
-
-                request.setAttribute("solde", solde);
+            if (compteDepot == null || compteCourant == null) {
+                request.setAttribute("error", "Compte dépôt ou compte courant introuvable");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 return;
-            } else {
-                montant = montant * -1;
-                OperationDepot opd = new OperationDepot(compte_id, montant, currDate);
-                ODE.createOperation(opd);
-
-                // ODE.debiterCompte(compteDepot, compteCourant, (montant * -1), currDate);
-                
-                solde = ODE.getSoldeByCompte(compte_id);
-                List<OperationDepot> operationDepots = ODE.getOperationsByCompte(compteDepot.getId());
-
-                request.setAttribute("operations", operationDepots);
-                request.setAttribute("solde", solde);
-                request.setAttribute("message", "Debite avec succes");
-
+            } else if (compteCourant.getEtat().equalsIgnoreCase("ferme")) {
+                request.setAttribute("error", "Ce compte est ferme");
+                request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
+                return;
+            } else if (montant <= 0) {
+                request.setAttribute("error", "Le montant doit être supérieur à 0");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 return;
             }
+            
+            
+            List<OperationDepot> operationDepots = operationDepotEJB.getAllOperations();
+            double solde = operationDepotEJB.getSoldeByCompte(compteDepotId);
+            double half = solde / 2; // 50% du solde autorisé
+            LocalDateTime currDate = LocalDateTime.now();
+
+            // Toujours définir les comptes pour la JSP
+            request.setAttribute("compte", compteCourant);
+            request.setAttribute("compteDepot", compteDepot);
+
+            switch (action.toLowerCase()) {
+                case "crediter": {
+                    // Création d'une opération crédit
+                    OperationDepot opd = new OperationDepot(compteDepotId, montant, currDate);
+                    operationDepotEJB.createOperation(opd);
+
+                    // operationDepotEJB.crediterCompte(compteDepot, compteCourant, montant, currDate);
+
+                    refreshDepotData(request, compteDepot);
+                    request.setAttribute("message", "Créditation réussie !");
+                    request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
+                }
+                    break;
+
+                case "debiter": {
+                    int diff = 0;
+
+                    if (operationDepots.isEmpty()) {
+                        diff = 31; // autoriser le premier retrait
+                    } else {
+                        if (operationDepotEJB.checkDebitOperation(operationDepots)) {
+                            LocalDateTime date2 = operationDepotEJB.getLastDebitDate(operationDepots);
+                            diff = (int) ChronoUnit.DAYS.between(date2, currDate);   
+                        } else{
+                            diff = 31;
+                        }
+                    }
+                    
+                    if (diff < 30) {
+                        request.setAttribute("error", "Vous ne pouvez débiter qu'une fois par mois");                        
+                    } else if (montant > half) {
+                        request.setAttribute("error", "Vous ne pouvez débiter qu’un montant ≤ " + half + " MGA");
+                    } else {
+                        // Création d'une opération débit
+                        OperationDepot opd = new OperationDepot(compteDepotId, -montant, currDate);
+                        operationDepotEJB.createOperation(opd);
+
+                        // operationDepotEJB.debiterCompte(compteDepot, compteCourant, montant, currDate);
+                        
+                        request.setAttribute("message", "Débit effectué avec succès !");
+                    }
+
+                    refreshDepotData(request, compteDepot);
+                    request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
+                }
+                    break;
+                default:
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue : " + action);
+                    break;
+            }
+
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Montant ou identifiant invalide");
+            request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Une erreur est survenue : " + e.getMessage());
+            request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
         }
+    }
+
+    /**
+     * Méthode utilitaire pour rafraîchir le solde et les opérations du compte dépôt
+     */
+    private void refreshDepotData(HttpServletRequest request, CompteDepot compteDepot) {
+        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
+        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        int sommeDate = 0;
+
+        /*
+         * Calcule de l'ensemble des interet obtenu par le compte 2% annuel
+         * ex : 
+         * 
+         * if sommeDate == 365 -> 1
+         * interet == 2 * 1
+         * 
+         * if sommeDate == 730 -> 2
+         * interet == 2 * 2 
+         */
+        if (!operations.isEmpty() || operations != null) {
+            LocalDateTime date1 = operations.get(0).getDateOperation();
+            LocalDateTime date2 = null;
+            for (int i = 1; i < operations.size(); i++) {
+                date2 = operations.get(i).getDateOperation();
+                sommeDate += (int) ChronoUnit.DAYS.between(date2, date1);
+
+                date1 = date2;
+            }
+
+            date2 = LocalDateTime.now();
+            sommeDate += (int) ChronoUnit.DAYS.between(date2, date1);
+        }
+
+        int nbAnnee = sommeDate / 365;
+        double interet = (2 * Double.valueOf(String.valueOf(nbAnnee))) / 100;
+        double soldeInteret = solde + ((solde * interet) / 100);
+
+        request.setAttribute("nbAnnee", nbAnnee);
+        request.setAttribute("interet", interet);
+        request.setAttribute("solde", solde);
+        request.setAttribute("soldeInteret", soldeInteret);
+        request.setAttribute("operations", operations);
     }
 }

@@ -19,6 +19,8 @@ namespace BanqueDepot.Models
         [Column("client_id")]
         public int ClientId { get; set; }
 
+        [Column("etat")]
+        public string? Etat { get; set; }
         // public List<OperationDepot> Operations { get; set; } = new();
     }
 }

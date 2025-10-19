@@ -132,4 +132,27 @@ public class OperationDepotEJB {
         OperationCourant opc = new OperationCourant(compteCourant, montant, Date.valueOf(LocalDate.now()));
         operationDAO.save(opc);
     }
+
+    public LocalDateTime getLastDebitDate(List<OperationDepot> operationDepots)
+    {
+        LocalDateTime result = operationDepots.get(0).getDateOperation();
+
+        for (OperationDepot operationDepot : operationDepots) {
+            if (operationDepot.getMontant() < 0) {
+                result = operationDepot.getDateOperation();
+            }
+        }
+
+        return result;
+    }
+
+    public boolean checkDebitOperation (List<OperationDepot> operationDepots) 
+    {
+        for (OperationDepot operationDepot : operationDepots) {
+            if (operationDepot.getMontant() < 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
