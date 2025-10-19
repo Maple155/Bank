@@ -55,14 +55,19 @@ public class PretServlet extends HttpServlet {
     }
 
     private void genererPDF(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte)
-            throws IOException {
+        throws IOException {
+    
+        HttpSession session = req.getSession();
+        Pret pret = (Pret) session.getAttribute("pret");
 
-        List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
-        // PretStatut pretStatut = PSE.getPretsImpayesByCompte(compte.getId());
-        if (pretStatuts == null)
-            return;
+        // int pretId = Integer.parseInt(pretParam);
+        // Pret pret = pretDAO.findById(pretId);
 
-        Pret pret = pretDAO.findById(pretStatuts.get(pretStatuts.size() - 1).getId());
+        // if (pret == null) {
+        //     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Prêt introuvable pour l'ID : " + pretId);
+        //     return;
+        // }
+
         String montant_str = req.getParameter("montant");
 
         resp.setContentType("application/pdf");
@@ -81,6 +86,7 @@ public class PretServlet extends HttpServlet {
         resp.flushBuffer();
     }
 
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -88,7 +94,9 @@ public class PretServlet extends HttpServlet {
         String action = req.getParameter("action");
         int compteId = Integer.parseInt(req.getParameter("compte"));
         CompteCourant compte = compteCourantDAO.findById(compteId);
-        Date currDate = Date.valueOf(LocalDate.now());
+        Date dateOperation = Date.valueOf(req.getParameter("date").toString());
+        // Date currDate = Date.valueOf(LocalDate.now());
+        Date currDate = dateOperation;
 
         if (compte.getEtat().equalsIgnoreCase("ferme")) {
             req.setAttribute("compte", compte);
@@ -131,11 +139,18 @@ public class PretServlet extends HttpServlet {
         // }
         
         else {
-            PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+            Pret pretCree = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
+            // PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+            PSE.demanderPret(pretCree);
+
+            HttpSession session = req.getSession();
+            session.setAttribute("pret", pretCree);
+
             req.setAttribute("message", "Prêt réussi avec succès");
             req.setAttribute("montant_str", montant_str);
             req.setAttribute("downloadPDF", true);
-        }
+            
+        }  
             
         req.setAttribute("compte", compte);
         req.getRequestDispatcher("/pret.jsp").forward(req, resp);

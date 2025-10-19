@@ -14,18 +14,26 @@ import com.banque.centralisateur.ejb.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/connexionDepot")
 public class ConnexionDepotServlet extends HttpServlet {
 
-    @Inject private CompteDepotEJB compteDepotEJB;
-    @Inject private OperationDepotEJB operationDepotEJB;
+    @Inject
+    private CompteDepotEJB compteDepotEJB;
+    @Inject
+    private OperationDepotEJB operationDepotEJB;
 
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private OperationDAO operationDAO;
-    @EJB private OperationServiceEJB operationService;
+    @EJB
+    private ClientDAO clientDAO;
+    @EJB
+    private CompteCourantDAO compteCourantDAO;
+    @EJB
+    private OperationDAO operationDAO;
+    @EJB
+    private OperationServiceEJB operationService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -62,13 +70,13 @@ public class ConnexionDepotServlet extends HttpServlet {
         }
 
         switch (action.toLowerCase()) {
-            case "login": 
+            case "login":
                 handleLogin(req, resp);
                 break;
-            case "register": 
+            case "register":
                 handleRegister(req, resp);
                 break;
-            default: 
+            default:
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue : " + action);
                 break;
         }
@@ -79,32 +87,34 @@ public class ConnexionDepotServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // try {
-            String numero = req.getParameter("numero");
-            int compteCourantId = Integer.parseInt(req.getParameter("courant").toString());
+        String numero = req.getParameter("numero");
+        int compteCourantId = Integer.parseInt(req.getParameter("courant").toString());
 
-            CompteDepot compteDepot = compteDepotEJB.getComptesByNumero(numero);
-            CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
+        CompteDepot compteDepot = compteDepotEJB.getComptesByNumero(numero);
+        CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
 
-            if (compteDepot == null) {
-                req.setAttribute("error", "Compte dépôt introuvable");
-                req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
-                return;
-            }
+        if (compteDepot == null) {
+            req.setAttribute("error", "Compte dépôt introuvable");
+            req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
+            return;
+        }
 
-            double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
-            List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
+        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
 
-            req.setAttribute("operations", operations);
-            req.setAttribute("solde", solde);
-            req.setAttribute("compte", compteCourant);
-            req.setAttribute("compteDepot", compteDepot);
-            req.setAttribute("message", "Connexion réussie !");
-            req.getRequestDispatcher("/operationDepot.jsp").forward(req, resp);
+        refreshDepotData(req, compteDepot);
+
+        req.setAttribute("operations", operations);
+        req.setAttribute("solde", solde);
+        req.setAttribute("compte", compteCourant);
+        req.setAttribute("compteDepot", compteDepot);
+        req.setAttribute("message", "Connexion réussie !");
+        req.getRequestDispatcher("/operationDepot.jsp").forward(req, resp);
 
         // } catch (Exception e) {
-        //     req.setAttribute("error", "Erreur lors de la connexion : " + e.getMessage());                
-        //     // req.setAttribute("message", "ato ve ?");
-        //     req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
+        // req.setAttribute("error", "Erreur lors de la connexion : " + e.getMessage());
+        // // req.setAttribute("message", "ato ve ?");
+        // req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
         // }
     }
 
@@ -148,4 +158,55 @@ public class ConnexionDepotServlet extends HttpServlet {
             req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
         }
     }
+
+    private void refreshDepotData(HttpServletRequest request, CompteDepot compteDepot) {
+        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        if (operations == null) {
+            operations = new ArrayList<>();
+        }
+    
+        // Solde réel du compte
+        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
+    
+        double interetTotal = 0.0;
+        double tauxAnnuel = 0.02; // 2% annuel
+    
+        if (!operations.isEmpty()) {
+            // Trier les opérations par date
+            operations.sort((o1, o2) -> o1.getDateOperation().compareTo(o2.getDateOperation()));
+    
+            // On initialise le solde temporaire avec le solde réel avant intérêts
+            double soldeTemp = solde;
+    
+            // On part de la date de la première opération
+            LocalDateTime datePrecedente = operations.get(0).getDateOperation();
+    
+            for (OperationDepot op : operations) {
+                // Nombre de jours depuis la dernière opération
+                long jours = ChronoUnit.DAYS.between(datePrecedente, op.getDateOperation());
+    
+                // Calcul de l'intérêt sur cette période
+                interetTotal += soldeTemp * tauxAnnuel * jours / 365.0;
+    
+                // Mettre à jour le solde temporaire avec l'opération actuelle
+                soldeTemp += op.getMontant();
+                datePrecedente = op.getDateOperation();
+            }
+    
+            // Intérêt jusqu'à aujourd'hui depuis la dernière opération
+            long joursRestants = ChronoUnit.DAYS.between(datePrecedente, LocalDateTime.now());
+            interetTotal += soldeTemp * tauxAnnuel * joursRestants / 365.0;
+        }
+    
+        double soldeInteret = solde + interetTotal;
+    
+        // Arrondi à 2 décimales
+        solde = Math.round(solde * 100.0) / 100.0;
+        soldeInteret = Math.round(soldeInteret * 100.0) / 100.0;
+        interetTotal = Math.round(interetTotal * 100.0) / 100.0;
+    
+        request.setAttribute("soldeInteret", soldeInteret);
+        request.setAttribute("interet", interetTotal);
+    }
+    
 }

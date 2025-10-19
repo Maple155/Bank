@@ -47,7 +47,7 @@ public class OperationCourantServlet extends HttpServlet {
         String action = request.getParameter("action");
         double montant = Double.parseDouble(request.getParameter("montant"));
         int compteId = Integer.parseInt(request.getParameter("compte"));
-
+        Date dateOperation = Date.valueOf(request.getParameter("date").toString());
         CompteCourant compte = compteCourantDAO.findById(compteId);
         double solde = operationService.getSoldeActuel(compteId);
 
@@ -65,10 +65,10 @@ public class OperationCourantServlet extends HttpServlet {
 
         switch (action) {
             case "crediter": 
-                handleCredit(request, response, compte, montant);
+                handleCredit(request, response, compte, montant, dateOperation);
                 break;
             case "debiter": 
-                handleDebit(request, response, compte, montant, solde);
+                handleDebit(request, response, compte, montant, solde, dateOperation);
                 break;
             default: 
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue");
@@ -79,10 +79,11 @@ public class OperationCourantServlet extends HttpServlet {
     /** ---------------------- HANDLERS ---------------------- **/
 
     private void handleCredit(HttpServletRequest request, HttpServletResponse response,
-                              CompteCourant compte, double montant)
+                              CompteCourant compte, double montant, Date dateOperation)
             throws ServletException, IOException {
 
-        Date date = Date.valueOf(LocalDate.now());
+        // Date date = Date.valueOf(LocalDate.now());
+        Date date = dateOperation;
         int minimum = 0;
         if (montant <= 0) {
             request.setAttribute("compte", compte);
@@ -99,7 +100,7 @@ public class OperationCourantServlet extends HttpServlet {
     }
 
     private void handleDebit(HttpServletRequest request, HttpServletResponse response,
-                             CompteCourant compte, double montant, double solde)
+                             CompteCourant compte, double montant, double solde, Date dateOperation)
             throws ServletException, IOException {
         
         int minimum = 0;
@@ -118,7 +119,8 @@ public class OperationCourantServlet extends HttpServlet {
             return;
         }
 
-        Date date = Date.valueOf(LocalDate.now());
+        // Date date = Date.valueOf(LocalDate.now());
+        Date date = dateOperation;
         operationDAO.save(new OperationCourant(compte, -montant, date));
 
         double nouveauSolde = operationService.getSoldeActuel(compte.getId());

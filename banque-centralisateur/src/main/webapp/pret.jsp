@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.banque.courant.entity.CompteCourant" %>
+<%@ page import="com.banque.pret.entity.Pret" %>
 
 <%
     CompteCourant compte = (CompteCourant) request.getAttribute("compte");
@@ -130,7 +131,10 @@
         <input type="number" min="0" name="montant" placeholder="Ex: 1 000 000" required>
 
         <label>Montant en lettres (MGA) :</label>
-        <input type="text" name="montant_str" placeholder="Ex: Un million " required>
+        <input type="text" name="montant_str" placeholder="Ex: Un Millions" required>
+
+        <label>Date du pret :</label>
+        <input type="date" name="date" required>
 
         <label>Durée (en mois) :</label>
         <input type="number" min="1" name="mois" placeholder="Ex: 12" required>
@@ -177,17 +181,18 @@
         }
     </script>
 
-    <% 
+    <%
         Boolean downloadPDF = (Boolean) request.getAttribute("downloadPDF");
+        String montant_str = (String) request.getAttribute("montant_str");
         if (downloadPDF != null && downloadPDF) {
-            String montant_str = (String) request.getAttribute("montant_str");
     %>
-        <script>
-            window.onload = function() {
-                window.location.href = '<%= request.getContextPath() %>/pret?download=1&compte=<%= compte.getId() %>&montant=<%= montant_str %>';
-            };
-        </script>
+    <script>
+        window.onload = function() {
+            window.location.href = '<%= request.getContextPath() %>/pret?download=1&compte=<%= compte.getId() %>&montant=<%= montant_str %>';
+        };
+    </script>
     <% } %>
+
 </div>
 
 </body>

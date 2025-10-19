@@ -14,6 +14,7 @@ import jakarta.persistence.PersistenceContext;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Stateless
@@ -116,18 +117,33 @@ public class PretServiceEJB {
         }
     }
 
-    public void demanderPret(double montant, CompteCourant compte, Date currDate, int moisRemboursement) {
+    // public void demanderPret(double montant, CompteCourant compte, Date currDate, int moisRemboursement) {
+    public void demanderPret(Pret pret) {
         try {
-            Pret pret = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
+            // Pret pret = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
             pretDAO.save(pret);
     
             TypesStatut type = typeStatutDAO.findByType("En cours");
             // TypesStatut type = typeStatutDAO.findByType("En attente");
     
-            PretStatut pretStatut = new PretStatut(pret, type, currDate);
+            // PretStatut pretStatut = new PretStatut(pret, type, currDate);
+            PretStatut pretStatut = new PretStatut(pret, type, pret.getDate_accord());
             pretStatutDAO.save(pretStatut);   
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public Pret getLatestPret(int compteId) {
+        List<Pret> prets = pretDAO.findByCompte(compteId);
+        if (prets == null || prets.isEmpty()) {
+            return null;
+        }
+
+        return prets.stream()
+                    .max(Comparator.comparing(Pret::getDate_accord))
+                    .orElse(null);
+    }
+
+    
 }
