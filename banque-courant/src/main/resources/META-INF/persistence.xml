@@ -9,6 +9,9 @@
         <jta-data-source>java:/BanqueDS</jta-data-source>
         <class>com.banque.courant.entity.CompteCourant</class>
         <class>com.banque.entity.Client</class>
+        <class>com.banque.entity.Action_role</class>
+        <class>com.banque.entity.Direction</class>
+        <class>com.banque.entity.Utilisateur</class>
         <class>com.banque.courant.entity.OperationCourant</class>
         <class>com.banque.courant.entity.Banque</class>
         <class>com.banque.courant.entity.Transaction</class>

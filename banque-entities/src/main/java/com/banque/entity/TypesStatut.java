@@ -9,6 +9,7 @@ public class TypesStatut {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    
     @Column(name = "type", nullable = false)
     private String type;
 

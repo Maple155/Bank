@@ -56,7 +56,7 @@ namespace BanqueDepot.Services
         public async Task<double> GetSoldeAsync(int compteId)
         {
             return await _context.Operations
-                .Where(o => o.Compte_id == compteId)
+                .Where(o => o.Compte_id == compteId && o.IsValidate == true)
                 .SumAsync(o => o.Montant);
         }
     }

@@ -23,13 +23,17 @@ public class OperationCourant {
     @Column(name = "date_operation", nullable = false)
     private Date dateOperation;
 
+    @Column(name = "isValidate", nullable = false)
+    private Boolean isValidate;
+    
     // Constructeurs
     public OperationCourant() {}
 
-    public OperationCourant(CompteCourant compte, double montant, Date dateOperation) {
+    public OperationCourant(CompteCourant compte, double montant, Date dateOperation, Boolean isValidate) {
         this.compte = compte;
         this.montant = montant;
         this.dateOperation = dateOperation;
+        this.isValidate = isValidate;
     }
 
     // Getters & setters
@@ -44,4 +48,7 @@ public class OperationCourant {
 
     public Date getDateOperation() { return dateOperation; }
     public void setDateOperation(Date dateOperation) { this.dateOperation = dateOperation; }
+
+    public Boolean getIsValidate() { return isValidate; }
+    public void setIsValidate(Boolean isValidate) { this.isValidate = isValidate; }
 }

@@ -12,10 +12,12 @@ import java.util.List;
 import com.banque.courant.dao.*;
 import com.banque.courant.ejb.*;
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.OperationRemote;
 import com.banque.entity.*;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
+import com.banque.pret.remote.PretRemote;
 
 @WebServlet("/operation")
 public class OperationCourantServlet extends HttpServlet {
@@ -23,11 +25,13 @@ public class OperationCourantServlet extends HttpServlet {
     @EJB private ClientDAO clientDAO;
     @EJB private CompteCourantDAO compteCourantDAO;
     @EJB private OperationDAO operationDAO;
-    @EJB private OperationServiceEJB operationService;
     @EJB private PretDAO pretDAO;
-    @EJB private PretServiceEJB pretService;
     @EJB private BanqueDAO banqueDAO;
     @EJB private TransactionDAO transactionDAO;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
+    private OperationRemote operationService;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote") 
+    private PretRemote pretService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -93,7 +97,7 @@ public class OperationCourantServlet extends HttpServlet {
             return;
         }
 
-        operationDAO.save(new OperationCourant(compte, montant, date));
+        operationDAO.save(new OperationCourant(compte, montant, date, true));
         double solde = operationService.getSoldeActuel(compte.getId());
         prepareClientView(request, compte, solde, "Crédit effectué avec succès");
         request.getRequestDispatcher("/client.jsp").forward(request, response);
@@ -121,7 +125,7 @@ public class OperationCourantServlet extends HttpServlet {
 
         // Date date = Date.valueOf(LocalDate.now());
         Date date = dateOperation;
-        operationDAO.save(new OperationCourant(compte, -montant, date));
+        operationDAO.save(new OperationCourant(compte, -montant, date, true));
 
         double nouveauSolde = operationService.getSoldeActuel(compte.getId());
         prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");

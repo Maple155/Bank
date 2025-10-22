@@ -24,7 +24,7 @@
 
 <div class="main-content">
     <h1>Transaction</h1>
-    <h3>Votre solde : <%= solde %> Ar</h3>
+    <h3>Votre solde : <%= solde %> MGA</h3>
 
     <% if (error != null) { %>
         <h3 class="error"><%= error %></h3>
@@ -54,7 +54,7 @@
             <input type="text" value="<%= compte_receiver.getNumero() %>" disabled>
 
             <label>Montant :</label>
-            <input type="number" min="0" name="montant" placeholder="Ex: 100000 Ar" required>
+            <input type="number" min="0" name="montant" placeholder="Ex: 100000 MGA" required>
 
             <input type="submit" value="Envoyer">
         </form>

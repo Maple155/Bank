@@ -8,6 +8,7 @@ public class OperationDepot {
     private int id;
     private int compte_id; // correspond à Compte_id côté .NET
     private double montant;
+    private boolean isValidate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime dateOperation;
@@ -15,10 +16,11 @@ public class OperationDepot {
     public OperationDepot() {
     }
 
-    public OperationDepot(int compte_id, double montant, LocalDateTime dateOperation) {
+    public OperationDepot(int compte_id, double montant, LocalDateTime dateOperation, boolean isValidate) {
         this.compte_id = compte_id;
         this.montant = montant;
         this.dateOperation = dateOperation;
+        this.isValidate = isValidate;
     }
     
     // Getters & Setters
@@ -53,4 +55,13 @@ public class OperationDepot {
     public void setDateOperation(LocalDateTime dateOperation) {
         this.dateOperation = dateOperation;
     }
+
+    public boolean isValidate() {
+        return isValidate;
+    }
+
+    public void setValidate(boolean isValidate) {
+        this.isValidate = isValidate;
+    }
+
 }

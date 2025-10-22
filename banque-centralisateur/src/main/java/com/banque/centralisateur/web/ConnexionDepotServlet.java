@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.ejb.*;
 import com.banque.courant.dao.*;
 import com.banque.centralisateur.model.*;
@@ -32,8 +33,8 @@ public class ConnexionDepotServlet extends HttpServlet {
     private CompteCourantDAO compteCourantDAO;
     @EJB
     private OperationDAO operationDAO;
-    @EJB
-    private OperationServiceEJB operationService;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    private OperationRemote operationService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -165,11 +166,10 @@ public class ConnexionDepotServlet extends HttpServlet {
             operations = new ArrayList<>();
         }
     
-        // Solde réel du compte
         double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
     
         double interetTotal = 0.0;
-        double tauxAnnuel = 0.02; // 2% annuel
+        double tauxAnnuel = 0.02;
     
         if (!operations.isEmpty()) {
             // Trier les opérations par date
@@ -194,13 +194,12 @@ public class ConnexionDepotServlet extends HttpServlet {
             }
     
             // Intérêt jusqu'à aujourd'hui depuis la dernière opération
-            long joursRestants = ChronoUnit.DAYS.between(datePrecedente, LocalDateTime.now());
-            interetTotal += soldeTemp * tauxAnnuel * joursRestants / 365.0;
+            // long joursRestants = ChronoUnit.DAYS.between(datePrecedente, LocalDateTime.now());
+            // interetTotal += soldeTemp * tauxAnnuel * joursRestants / 365.0;
         }
     
         double soldeInteret = solde + interetTotal;
     
-        // Arrondi à 2 décimales
         solde = Math.round(solde * 100.0) / 100.0;
         soldeInteret = Math.round(soldeInteret * 100.0) / 100.0;
         interetTotal = Math.round(interetTotal * 100.0) / 100.0;

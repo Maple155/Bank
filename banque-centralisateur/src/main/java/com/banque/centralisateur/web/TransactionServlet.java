@@ -8,13 +8,12 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 
 import com.banque.courant.dao.CompteCourantDAO;
-import com.banque.courant.ejb.OperationServiceEJB;
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.TransactionRemote;
 import com.banque.centralisateur.ejb.CompteDepotEJB;
 import com.banque.centralisateur.ejb.OperationDepotEJB;
-import com.banque.entity.Client;
 import com.banque.courant.dao.ClientDAO;
-import com.banque.courant.ejb.TransactionServiceEJB;
 import com.banque.courant.dao.TransactionDAO;
 
 @WebServlet("/transaction")
@@ -25,9 +24,12 @@ public class TransactionServlet extends HttpServlet {
 
     @EJB private ClientDAO clientDAO;
     @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private OperationServiceEJB OSE;
     @EJB private TransactionDAO transactionDAO;
-    @EJB private TransactionServiceEJB TSE;
+
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    private OperationRemote OSE;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
+    private TransactionRemote TSE;
 
     private void forward(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.getRequestDispatcher("/transaction.jsp").forward(req, resp);

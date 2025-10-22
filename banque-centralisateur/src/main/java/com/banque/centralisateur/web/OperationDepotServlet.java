@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.centralisateur.ejb.CompteDepotEJB;
 import com.banque.centralisateur.ejb.OperationDepotEJB;
@@ -29,13 +30,13 @@ public class OperationDepotServlet extends HttpServlet {
     private CompteDepotEJB compteDepotEJB;
     @Inject
     private OperationDepotEJB operationDepotEJB;
-
+  
     @EJB
     private ClientDAO clientDAO;
     @EJB
     private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationServiceEJB operationService;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    private OperationRemote operationService;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -64,7 +65,7 @@ public class OperationDepotServlet extends HttpServlet {
                 request.setAttribute("error", "Ce compte est ferme");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 return;
-            } else if (montant <= 0) {
+            } else if (montant < 0) {
                 request.setAttribute("error", "Le montant doit être supérieur à 0");
                 request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 return;
@@ -72,25 +73,31 @@ public class OperationDepotServlet extends HttpServlet {
 
             List<OperationDepot> operationDepots = operationDepotEJB.getAllOperations();
             double solde = operationDepotEJB.getSoldeByCompte(compteDepotId);
-            double half = solde / 2; // 50% du solde autorisé
+            double half = solde / 2; 
             // LocalDateTime currDate = LocalDateTime.now();
             LocalDateTime currDate = dateOperation.toLocalDate().atStartOfDay();
 
-            // Toujours définir les comptes pour la JSP
             request.setAttribute("compte", compteCourant);
             request.setAttribute("compteDepot", compteDepot);
 
             switch (action.toLowerCase()) {
                 case "crediter": {
-                    // Création d'une opération crédit
-                    OperationDepot opd = new OperationDepot(compteDepotId, montant, currDate);
-                    operationDepotEJB.createOperation(opd);
 
-                    // operationDepotEJB.crediterCompte(compteDepot, compteCourant, montant,
-                    // currDate);
+                    // OperationDepot opd = new OperationDepot(compteDepotId, montant, currDate);
+                    // operationDepotEJB.createOperation(opd);
+                    
+                    double soldeCourant = operationService.getSoldeActuel(compteCourantId);
+
+
+                    if (soldeCourant < montant) {
+                        request.setAttribute("error", "Solde insuffisant dans le compte courant");                    
+                    } else {
+                        operationDepotEJB.crediterCompte(compteDepot, compteCourant, montant,
+                        currDate);
+                        request.setAttribute("message", "Créditation réussie !");
+                    }
 
                     refreshDepotData(request, compteDepot);
-                    request.setAttribute("message", "Créditation réussie !");
                     request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
                 }
                     break;
@@ -99,7 +106,7 @@ public class OperationDepotServlet extends HttpServlet {
                     int diff = 0;
 
                     if (operationDepots.isEmpty()) {
-                        diff = 31; // autoriser le premier retrait
+                        diff = 31; 
                     } else {
                         if (operationDepotEJB.checkDebitOperation(operationDepots)) {
                             LocalDateTime date2 = operationDepotEJB.getLastDebitDate(operationDepots);
@@ -116,12 +123,12 @@ public class OperationDepotServlet extends HttpServlet {
                     } else if (montant > half) {
                         request.setAttribute("error", "Vous ne pouvez débiter qu'un montant ≤ " + half + " MGA");
                     } else {
-                        // Création d'une opération débit
-                        OperationDepot opd = new OperationDepot(compteDepotId, -montant, currDate);
-                        operationDepotEJB.createOperation(opd);
 
-                        // operationDepotEJB.debiterCompte(compteDepot, compteCourant, montant,
-                        // currDate);
+                        // OperationDepot opd = new OperationDepot(compteDepotId, -montant, currDate);
+                        // operationDepotEJB.createOperation(opd);
+
+                        operationDepotEJB.debiterCompte(compteDepot, compteCourant, montant,
+                        currDate);
 
                         request.setAttribute("message", "Débit effectué avec succès !");
                     }
@@ -154,11 +161,10 @@ public class OperationDepotServlet extends HttpServlet {
             operations = new ArrayList<>();
         }
     
-        // Solde réel du compte
         double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
     
         double interetTotal = 0.0;
-        double tauxAnnuel = 0.02; // 2% annuel
+        double tauxAnnuel = 0.02; 
     
         if (!operations.isEmpty()) {
             // Trier les opérations par date

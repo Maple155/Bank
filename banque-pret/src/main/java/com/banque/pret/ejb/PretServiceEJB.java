@@ -1,6 +1,7 @@
 package com.banque.pret.ejb;
 
 import com.banque.pret.entity.*;
+import com.banque.pret.remote.PretRemote;
 import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.entity.OperationCourant;
@@ -18,8 +19,9 @@ import java.util.Comparator;
 import java.util.List;
 
 @Stateless
-public class PretServiceEJB {
-    @PersistenceContext
+public class PretServiceEJB implements PretRemote{
+
+    @PersistenceContext(unitName = "banquePretPU")
     private EntityManager em;
     @EJB 
     private PretDAO pretDAO;
@@ -31,10 +33,12 @@ public class PretServiceEJB {
     // @EJB
     // private OperationDAO operationDAO;
 
+    @Override
     public Pret findPret(int id) {
         return em.find(Pret.class, id);
     }
 
+    @Override
     public void savePret(Pret pret) {
         if (pret.getId() == 0) {
             em.persist(pret);
@@ -43,10 +47,12 @@ public class PretServiceEJB {
         }
     }
 
+    @Override
     public List<Pret> allPrets() {
         return em.createQuery("SELECT p FROM Pret p", Pret.class).getResultList();
     }
 
+    @Override
     public void saveRemboursement(Remboursement remboursement) {
         if (remboursement.getId() == 0) {
             em.persist(remboursement);
@@ -55,12 +61,14 @@ public class PretServiceEJB {
         }
     }
 
+    @Override
     public List<Remboursement> remboursementsPret(int pretId) {
         return em.createQuery("SELECT r FROM Remboursement r WHERE r.pret.id = :pretId", Remboursement.class)
                 .setParameter("pretId", pretId)
                 .getResultList();
     }
 
+    @Override
     public PretStatut getPretsImpayesByCompte(int compte_id) {
         try {
             List<PretStatut> prets = pretStatutDAO.getPretsAvecStatutActuelByCompte(compte_id);
@@ -75,6 +83,7 @@ public class PretServiceEJB {
         return null;
     }
 
+    @Override
     public List<PretStatut> getPretsImpayesListByCompte(int compte_id) {
         try {
             List<PretStatut> pretStatuts = new ArrayList<>();
@@ -90,6 +99,7 @@ public class PretServiceEJB {
         }
     }
 
+    @Override
     public double resteAPaye (int pret_id) {
         Pret pret = pretDAO.findById(pret_id);
         List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret_id);
@@ -105,12 +115,13 @@ public class PretServiceEJB {
         return montantApaye - rembourse;
     }
 
+    @Override
     public void rembourserPret (Pret pret, CompteCourant compteCourant, double montant, Date currDate, OperationDAO operationDAO) {
         try {
             Remboursement remboursement = new Remboursement(pret, montant, currDate);
             pretDAO.saveRemboursement(remboursement);
     
-            OperationCourant operation = new OperationCourant(compteCourant, (montant * -1), currDate);
+            OperationCourant operation = new OperationCourant(compteCourant, (montant * -1), currDate, true);
             operationDAO.save(operation);   
         } catch (Exception e) {
             e.printStackTrace();
@@ -118,6 +129,7 @@ public class PretServiceEJB {
     }
 
     // public void demanderPret(double montant, CompteCourant compte, Date currDate, int moisRemboursement) {
+    @Override
     public void demanderPret(Pret pret) {
         try {
             // Pret pret = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
@@ -134,6 +146,7 @@ public class PretServiceEJB {
         }
     }
 
+    @Override
     public Pret getLatestPret(int compteId) {
         List<Pret> prets = pretDAO.findByCompte(compteId);
         if (prets == null || prets.isEmpty()) {

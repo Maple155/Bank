@@ -27,14 +27,18 @@ public class Transaction {
     @Column(name = "date_transaction", nullable = false)
     private Date dateTransaction;
 
+    @Column(name = "isValidate", nullable = false)
+    private boolean isValidate;
+    
     public Transaction() {
     }
     
-    public Transaction(CompteCourant sender, CompteCourant receiver, double montant, Date dateTransaction) {
+    public Transaction(CompteCourant sender, CompteCourant receiver, double montant, Date dateTransaction, boolean isValidate) {
         this.sender = sender;
         this.receiver = receiver;
         this.montant = montant;
         this.dateTransaction = dateTransaction;
+        this.isValidate = isValidate;
     }
     
     public int getId() {
@@ -76,4 +80,13 @@ public class Transaction {
     public void setDateTransaction(Date dateTransaction) {
         this.dateTransaction = dateTransaction;
     }
+
+    public boolean isValidate() {
+        return isValidate;
+    }
+
+    public void setValidate(boolean isValidate) {
+        this.isValidate = isValidate;
+    }
+
 }
