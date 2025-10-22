@@ -31,7 +31,7 @@
     List<DirectionDTO> directions = (List<DirectionDTO>) request.getAttribute("directions");
     List<ActionRoleDTO> actionRoles = (List<ActionRoleDTO>) request.getAttribute("actionRoles");
     
-    Boolean estUtilisateur = (Boolean) request.getAttribute("estUtilisateur");
+    // Boolean estUtilisateur = (Boolean) request.getAttribute("estUtilisateur");
 %>
 
 <!DOCTYPE html>
@@ -120,7 +120,7 @@
 </head>
 <body>
 <!-- AFFICHAGE DES DONNÉES UTILISATEUR ADMIN -->
-<% if(estUtilisateur != null && estUtilisateur && utilisateur != null) { %>
+<% if(utilisateur != null) { %>
     <div class="admin-info-panel">
         <div class="admin-info-header">
             <h2 class="admin-title">👨‍💼 Tableau de Bord Administrateur</h2>

@@ -76,6 +76,31 @@ public class ConnexionServlet extends HttpServlet {
     private void handleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
+
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+                
+            }
+        }
+
+        request.setAttribute("utilateur", utilisateur);
+        request.setAttribute("directions", directions);
+        request.setAttribute("actionRoles", actionRoles);
+
         // TRAITEMENT DU LOGIN CLIENT (toujours exécuté)
         String numero = request.getParameter("numero");
         CompteCourant compte = compteCourantDAO.findByNumero(numero);
