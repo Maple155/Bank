@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.dao.BanqueDAO;
 import com.banque.courant.dao.ClientDAO;
@@ -23,6 +24,7 @@ import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.Pret;
 import com.banque.pret.entity.PretStatut;
 import com.banque.pret.entity.Remboursement;
+import com.banque.pret.remote.PretRemote;
 import com.banque.entity.TypesStatut;
 
 @WebServlet("/pret")
@@ -31,12 +33,14 @@ public class PretServlet extends HttpServlet {
     @EJB private ClientDAO clientDAO;
     @EJB private CompteCourantDAO compteCourantDAO;
     @EJB private OperationDAO operationDAO;
-    @EJB private OperationServiceEJB OSE;
-    @EJB private PretDAO pretDAO;
-    @EJB private PretServiceEJB PSE;
-    @EJB private BanqueDAO banqueDAO;
     @EJB private TypeStatutDAO typeStatutDAO;
     @EJB private PretStatutDAO pretStatutDAO;
+    @EJB private PretDAO pretDAO;
+    @EJB private BanqueDAO banqueDAO;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
+    private OperationRemote OSE;
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote") 
+    private PretRemote PSE;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

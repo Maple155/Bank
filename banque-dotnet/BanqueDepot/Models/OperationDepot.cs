@@ -16,6 +16,9 @@ namespace BanqueDepot.Models
         [Column("date_operation")]
         public DateTime DateOperation { get; set; }
 
+        [Column("isValidate")]
+        public bool IsValidate { get; set; }
+        
         // public CompteDepot Compte { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 com\banque\pret\entity\Remboursement.class
+com\banque\pret\remote\PretRemote.class
 com\banque\pret\ejb\PretServiceEJB.class
 com\banque\pret\entity\PretStatut.class
 com\banque\pret\dao\PretDAO.class

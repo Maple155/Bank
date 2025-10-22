@@ -1,5 +1,6 @@
 package com.banque.centralisateur.web;
 
+import com.banque.courant.remote.UtilisateurRemote;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,29 +11,44 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.banque.courant.dao.*;
+import com.banque.courant.dto.*;
 import com.banque.courant.ejb.*;
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.TransactionRemote;
 import com.banque.entity.*;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
+import com.banque.pret.remote.PretRemote;
 
 @WebServlet("/connexion")
 public class ConnexionServlet extends HttpServlet {
 
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private OperationDAO operationDAO;
-    @EJB private OperationServiceEJB operationService;
-    @EJB private PretDAO pretDAO;
-    @EJB private PretServiceEJB pretService;
-    @EJB private BanqueDAO banqueDAO;
-    @EJB private TransactionDAO transactionDAO;
-    @EJB private TransactionServiceEJB transactionService;
+    @EJB
+    private ClientDAO clientDAO;
+    @EJB
+    private CompteCourantDAO compteCourantDAO;
+    @EJB
+    private OperationDAO operationDAO;
+    @EJB
+    private PretDAO pretDAO;
+    @EJB
+    private BanqueDAO banqueDAO;
+    @EJB
+    private TransactionDAO transactionDAO;
+
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    private OperationRemote operationService;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
+    private PretRemote pretService;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
+    private TransactionRemote transactionService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         List<CompteCourant> comptes = compteCourantDAO.findAll();
         req.setAttribute("comptes", comptes);
         req.getRequestDispatcher("/connexion.jsp").forward(req, resp);
@@ -45,21 +61,22 @@ public class ConnexionServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         switch (action) {
-            case "login" : 
+            case "login":
                 handleLogin(request, response);
                 break;
-            case "register" :
+            case "register":
                 handleRegister(request, response);
                 break;
-            default :
+            default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue");
                 break;
-        }        
+        }
     }
 
     private void handleLogin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // TRAITEMENT DU LOGIN CLIENT (toujours exécuté)
         String numero = request.getParameter("numero");
         CompteCourant compte = compteCourantDAO.findByNumero(numero);
 
@@ -69,6 +86,7 @@ public class ConnexionServlet extends HttpServlet {
             return;
         }
 
+        // Récupérer les données du client
         double solde = operationService.getSoldeActuel(compte.getId());
         List<OperationCourant> operations = operationDAO.findByCompte(compte.getId());
         List<Pret> prets = pretDAO.findByCompte(compte.getId());
@@ -90,6 +108,7 @@ public class ConnexionServlet extends HttpServlet {
         List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
         List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
 
+        // AJOUTER LES DONNÉES CLIENT À LA REQUÊTE
         request.setAttribute("sender", transactionsSender);
         request.setAttribute("receiver", transactionsReceiver);
         request.setAttribute("solde", solde);
@@ -100,12 +119,14 @@ public class ConnexionServlet extends HttpServlet {
         request.setAttribute("remboursements", remboursements);
         request.setAttribute("resteAPaye", resteAPayer);
         request.setAttribute("message", "Connexion réussie");
+        request.setAttribute("estClient", true);
 
         request.getRequestDispatcher("/client.jsp").forward(request, response);
     }
 
     private void addPretDetailsToRequest(HttpServletRequest request, List<PretStatut> pretStatuts) {
-        if (pretStatuts == null || pretStatuts.isEmpty()) return;
+        if (pretStatuts == null || pretStatuts.isEmpty())
+            return;
 
         request.setAttribute("pretStatus", pretStatuts);
 

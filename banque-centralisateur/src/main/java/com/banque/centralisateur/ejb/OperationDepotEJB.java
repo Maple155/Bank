@@ -118,18 +118,18 @@ public class OperationDepotEJB {
     }
 
     public void crediterCompte (CompteDepot compteDepot, CompteCourant compteCourant, double montant, LocalDateTime currDate) {
-        OperationDepot opd = new OperationDepot(compteDepot.getId(), montant, currDate);
+        OperationDepot opd = new OperationDepot(compteDepot.getId(), montant, currDate, true);
         this.createOperation(opd);
 
-        OperationCourant opc = new OperationCourant(compteCourant, (montant * -1), Date.valueOf(LocalDate.now()));
+        OperationCourant opc = new OperationCourant(compteCourant, (montant * -1), Date.valueOf(LocalDate.now()), true);
         operationDAO.save(opc);
     }
 
     public void debiterCompte (CompteDepot compteDepot, CompteCourant compteCourant, double montant, LocalDateTime currDate) {
-        OperationDepot opd = new OperationDepot(compteDepot.getId(), (montant * -1), currDate);
+        OperationDepot opd = new OperationDepot(compteDepot.getId(), (montant * -1), currDate, true);
         this.createOperation(opd);
 
-        OperationCourant opc = new OperationCourant(compteCourant, montant, Date.valueOf(LocalDate.now()));
+        OperationCourant opc = new OperationCourant(compteCourant, montant, Date.valueOf(LocalDate.now()), true);
         operationDAO.save(opc);
     }
 
@@ -138,7 +138,7 @@ public class OperationDepotEJB {
         LocalDateTime result = operationDepots.get(0).getDateOperation();
 
         for (OperationDepot operationDepot : operationDepots) {
-            if (operationDepot.getMontant() < 0) {
+            if (operationDepot.getMontant() < 0 && operationDepot.isValidate()) {
                 result = operationDepot.getDateOperation();
             }
         }
@@ -149,7 +149,7 @@ public class OperationDepotEJB {
     public boolean checkDebitOperation (List<OperationDepot> operationDepots) 
     {
         for (OperationDepot operationDepot : operationDepots) {
-            if (operationDepot.getMontant() < 0) {
+            if (operationDepot.getMontant() < 0 && operationDepot.isValidate()) {
                 return true;
             }
         }

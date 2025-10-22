@@ -46,7 +46,7 @@ namespace BanqueDepot.Models
                 entity.Property(e => e.Etat)
                       .HasColumnName("etat")
                       .IsRequired();
-                      
+
                 // // Relation avec les opérations
                 // entity.HasMany(e => e.Operations)
                 //       .WithOne(o => o.Compte)
@@ -75,6 +75,10 @@ namespace BanqueDepot.Models
 
                 entity.Property(e => e.DateOperation)
                       .HasColumnName("date_operation")
+                      .IsRequired();
+
+                entity.Property(e => e.IsValidate)
+                      .HasColumnName("isValidate")
                       .IsRequired();
             });
         }

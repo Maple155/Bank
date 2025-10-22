@@ -79,12 +79,15 @@
                 <th>Montant (MGA)</th>
                 <th>Date</th>
             </tr>
-            <% for (OperationDepot op : operations) { %>
+            <% 
+                for (OperationDepot op : operations) { 
+                   if (op) { 
+            %>
                 <tr>
                     <td><%= op.getMontant() %></td>
                     <td><%= op.getDateOperation() %></td>
                 </tr>
-            <% } %>
+            <% } } %>
         </table>
     <% } else { %>
         <p>Aucune opération effectuée pour le moment.</p>

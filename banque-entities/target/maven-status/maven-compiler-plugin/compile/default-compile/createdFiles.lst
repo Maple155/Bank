@@ -1,2 +1,5 @@
+com\banque\entity\Direction.class
+com\banque\entity\Action_role.class
 com\banque\entity\TypesStatut.class
 com\banque\entity\Client.class
+com\banque\entity\Utilisateur.class
