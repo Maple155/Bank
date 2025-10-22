@@ -40,7 +40,16 @@ public class LoginServlet extends HttpServlet {
             if (sessionUtilisateur.login(login, mdp)) {
 
                 // mettre en session sessionUtilisateur
+                UtilisateurDTO utilisateur = sessionUtilisateur.getUtilisateurConnecte();
+
+                // créer / récupérer la session et stocker l'utilisateur
+                HttpSession session = req.getSession(true);
+                session.setAttribute("sessionUtilisateur", sessionUtilisateur);
+                session.setAttribute("user", utilisateur);
                 
+                // durée d'inactivité : 30 minutes (exemple)
+                session.setMaxInactiveInterval(30 * 60);
+
                 req.getRequestDispatcher("/connexion").forward(req, resp);
 
             } else {
