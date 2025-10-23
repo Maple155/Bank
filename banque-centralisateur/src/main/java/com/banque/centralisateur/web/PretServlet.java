@@ -11,10 +11,14 @@ import java.util.List;
 
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.UtilisateurRemote;
 import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.dao.BanqueDAO;
 import com.banque.courant.dao.ClientDAO;
 import com.banque.courant.dao.OperationDAO;
+import com.banque.courant.dto.ActionRoleDTO;
+import com.banque.courant.dto.DirectionDTO;
+import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.courant.ejb.OperationServiceEJB;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.dao.PretStatutDAO;
@@ -30,16 +34,23 @@ import com.banque.entity.TypesStatut;
 @WebServlet("/pret")
 public class PretServlet extends HttpServlet {
 
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private OperationDAO operationDAO;
-    @EJB private TypeStatutDAO typeStatutDAO;
-    @EJB private PretStatutDAO pretStatutDAO;
-    @EJB private PretDAO pretDAO;
-    @EJB private BanqueDAO banqueDAO;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
+    @EJB
+    private ClientDAO clientDAO;
+    @EJB
+    private CompteCourantDAO compteCourantDAO;
+    @EJB
+    private OperationDAO operationDAO;
+    @EJB
+    private TypeStatutDAO typeStatutDAO;
+    @EJB
+    private PretStatutDAO pretStatutDAO;
+    @EJB
+    private PretDAO pretDAO;
+    @EJB
+    private BanqueDAO banqueDAO;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote OSE;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote") 
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote PSE;
 
     @Override
@@ -59,8 +70,8 @@ public class PretServlet extends HttpServlet {
     }
 
     private void genererPDF(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte)
-        throws IOException {
-    
+            throws IOException {
+
         HttpSession session = req.getSession();
         Pret pret = (Pret) session.getAttribute("pret");
 
@@ -68,8 +79,9 @@ public class PretServlet extends HttpServlet {
         // Pret pret = pretDAO.findById(pretId);
 
         // if (pret == null) {
-        //     resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Prêt introuvable pour l'ID : " + pretId);
-        //     return;
+        // resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Prêt introuvable pour l'ID
+        // : " + pretId);
+        // return;
         // }
 
         String montant_str = req.getParameter("montant");
@@ -89,7 +101,6 @@ public class PretServlet extends HttpServlet {
 
         resp.flushBuffer();
     }
-
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -124,38 +135,74 @@ public class PretServlet extends HttpServlet {
     private void demanderPret(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte, Date currDate)
             throws ServletException, IOException {
 
-        double montant = Double.parseDouble(req.getParameter("montant"));
-        String montant_str = req.getParameter("montant_str");
-        int moisRemboursement = Integer.parseInt(req.getParameter("mois"));
+        HttpSession session = req.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
 
-        if (montant <= 0 || moisRemboursement <= 0) {
-            req.setAttribute("error", "Montant et durée invalides");
-            return;
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+        boolean isRole = false;
+
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+
+                for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                    if (actionRoleDTO.getNomTable().equalsIgnoreCase("pret")
+                            && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                        isRole = true;
+                        break;
+                    }
+                }
+            }
         }
-        
-        // PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compte.getId());
-        // List<PretStatut> pretStatuts = PSE.getPretsImpayesListByCompte(compte.getId());
 
-        // if (pretImpaye != null) {
-        //     double resteApaye = PSE.resteAPaye(pretImpaye.getPret().getId());
-        //     req.setAttribute("compte", compte);
-        //     req.setAttribute("error", "Vous avez encore un prêt de " + resteApaye + " MGA à rembourser.");
-        // }
-        
-        else {
-            Pret pretCree = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
-            // PSE.demanderPret(montant, compte, currDate, moisRemboursement);
-            PSE.demanderPret(pretCree);
+        if (isRole == false) {
+            req.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
+            return;
+        } else {
 
-            HttpSession session = req.getSession();
-            session.setAttribute("pret", pretCree);
+            double montant = Double.parseDouble(req.getParameter("montant"));
+            String montant_str = req.getParameter("montant_str");
+            int moisRemboursement = Integer.parseInt(req.getParameter("mois"));
 
-            req.setAttribute("message", "Prêt réussi avec succès");
-            req.setAttribute("montant_str", montant_str);
-            req.setAttribute("downloadPDF", true);
-            
-        }  
-            
+            if (montant <= 0 || moisRemboursement <= 0) {
+                req.setAttribute("error", "Montant et durée invalides");
+                return;
+            }
+
+            // PretStatut pretImpaye = PSE.getPretsImpayesByCompte(compte.getId());
+            // List<PretStatut> pretStatuts =
+            // PSE.getPretsImpayesListByCompte(compte.getId());
+
+            // if (pretImpaye != null) {
+            // double resteApaye = PSE.resteAPaye(pretImpaye.getPret().getId());
+            // req.setAttribute("compte", compte);
+            // req.setAttribute("error", "Vous avez encore un prêt de " + resteApaye + " MGA
+            // à rembourser.");
+            // }
+
+            else {
+                Pret pretCree = new Pret(montant, 24.0, compte, currDate, moisRemboursement);
+                // PSE.demanderPret(montant, compte, currDate, moisRemboursement);
+                PSE.demanderPret(pretCree);
+
+                session.setAttribute("pret", pretCree);
+
+                req.setAttribute("message", "Prêt réussi avec succès");
+                req.setAttribute("montant_str", montant_str);
+                req.setAttribute("downloadPDF", true);
+
+            }
+        }
+
         req.setAttribute("compte", compte);
         req.getRequestDispatcher("/pret.jsp").forward(req, resp);
     }
@@ -163,41 +210,79 @@ public class PretServlet extends HttpServlet {
     private void rembourserPret(HttpServletRequest req, HttpServletResponse resp, CompteCourant compte, Date currDate)
             throws ServletException, IOException {
 
-        int pretId = Integer.parseInt(req.getParameter("pret"));
-        double montant = Double.parseDouble(req.getParameter("montant"));
+        HttpSession session = req.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
 
-        Pret pret = pretDAO.findById(pretId);
-        double resteApaye = PSE.resteAPaye(pret.getId());
-        
-        if (resteApaye <= 0) {
-            req.setAttribute("compte", compte);
-            req.setAttribute("error", "Vous n'avez plus de prêt à rembourser");
-        } else {
-            double nouveauReste = resteApaye - montant;
-            double montantAPayer = montant;
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+        boolean isRole = false;
 
-            double solde = OSE.getSoldeActuel(compte.getId());
-            
-            if (nouveauReste < 0) montantAPayer = montant + nouveauReste;
-            
-            if (montantAPayer > solde) { 
-                req.setAttribute("error", "Votre solde est insuffisant pour ce montant");
-            } else {
-                PSE.rembourserPret(pret, compte, montantAPayer, currDate, operationDAO);
-                
-                if (nouveauReste <= 0) {
-                    TypesStatut type = typeStatutDAO.findByType("Rembourse");
-                    PretStatut statut = new PretStatut(pret, type, currDate);
-                    pretStatutDAO.save(statut);
-                    req.setAttribute("message", "Vous avez remboursé la totalité de votre prêt");
-                } else {
-                    req.setAttribute("message", "Vous avez remboursé une partie de votre prêt");
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+
+                for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                    if (actionRoleDTO.getNomTable().equalsIgnoreCase("pret")
+                            && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                        isRole = true;
+                        break;
+                    }
                 }
             }
         }
 
-        req.setAttribute("compte", compte);
-        req.getRequestDispatcher("/pret.jsp").forward(req, resp);
+        if (isRole == false) {
+            req.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
+            req.setAttribute("compte", compte);
+            req.getRequestDispatcher("/pret.jsp").forward(req, resp);
+            
+        } else {
 
+            int pretId = Integer.parseInt(req.getParameter("pret"));
+            double montant = Double.parseDouble(req.getParameter("montant"));
+
+            Pret pret = pretDAO.findById(pretId);
+            double resteApaye = PSE.resteAPaye(pret.getId());
+
+            if (resteApaye <= 0) {
+                req.setAttribute("compte", compte);
+                req.setAttribute("error", "Vous n'avez plus de prêt à rembourser");
+            } else {
+                double nouveauReste = resteApaye - montant;
+                double montantAPayer = montant;
+
+                double solde = OSE.getSoldeActuel(compte.getId());
+
+                if (nouveauReste < 0)
+                    montantAPayer = montant + nouveauReste;
+
+                if (montantAPayer > solde) {
+                    req.setAttribute("error", "Votre solde est insuffisant pour ce montant");
+                } else {
+                    PSE.rembourserPret(pret, compte, montantAPayer, currDate, operationDAO);
+
+                    if (nouveauReste <= 0) {
+                        TypesStatut type = typeStatutDAO.findByType("Rembourse");
+                        PretStatut statut = new PretStatut(pret, type, currDate);
+                        pretStatutDAO.save(statut);
+                        req.setAttribute("message", "Vous avez remboursé la totalité de votre prêt");
+                    } else {
+                        req.setAttribute("message", "Vous avez remboursé une partie de votre prêt");
+                    }
+                }
+            }
+
+            req.setAttribute("compte", compte);
+            req.getRequestDispatcher("/pret.jsp").forward(req, resp);
+
+        }
     }
 }

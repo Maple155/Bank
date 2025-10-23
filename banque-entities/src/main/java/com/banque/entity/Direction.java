@@ -1,10 +1,13 @@
 package com.banque.entity;
 
+import java.io.Serializable;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "direction")
-public class Direction {
+public class Direction implements Serializable{
+    private static final long serialVersionUID = 1L;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,8 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.banque.courant.entity.CompteCourant" %>
+<%@ page import="com.banque.change.entity.Change" %>
+<%@ page import="java.util.List" %>
 
 <%
     CompteCourant compte = (CompteCourant) request.getAttribute("compte");
+    List<String> devises = (List<String>) request.getAttribute("devises");
     String error = (String) request.getAttribute("error");
 %>
 
@@ -44,6 +47,20 @@
                 <option value="">-- Sélectionnez l'opération --</option>
                 <option value="crediter">Créditer</option>
                 <option value="debiter">Débiter</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="devise">Devise :</label>
+            <select name="devise" id="devise" required>
+                <option value="">-- Sélectionnez votre devise --</option>
+                <option value="MGA">MGA</option>
+                <% 
+                    if (devises != null) {
+                        for(String devise : devises) { 
+                %>
+                    <option value="<%= devise %>"><%=  devise %></option>
+                <% } } %>
             </select>
         </div>
 

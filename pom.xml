@@ -15,6 +15,7 @@
     <module>banque-pret</module>
     <module>banque-centralisateur</module>
     <module>banque-ear</module>
+    <module>banque-change</module>
   </modules>
   
 </project>

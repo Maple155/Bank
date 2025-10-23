@@ -189,7 +189,7 @@
 
     <!-- Formulaire d'inscription -->
     <div id="registerForm" class="hidden">
-        <h2>S’inscrire</h2>
+        <h2>Creer un client</h2>
         <form action="${pageContext.request.contextPath}/connexion" method="POST">
             <input type="hidden" name="action" value="register">
             <input type="text" name="nom" placeholder="Nom" required>

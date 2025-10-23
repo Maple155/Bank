@@ -13,9 +13,10 @@
     <div class="main-content" style="text-align:center; padding-top:50px;">
         <h1>Bienvenue sur la Banque Centralisateur</h1>
         <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-            <%-- <a class="button-link" href="${pageContext.request.contextPath}/banque">Banque</a> --%>
+            <a class="button-link" href="${pageContext.request.contextPath}/banque">Banque</a>
             <a class="button-link" href="${pageContext.request.contextPath}/login">Utilisateur</a>
         </div>
     </div>
 </body>
 </html>
+i

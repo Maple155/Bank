@@ -8,8 +8,12 @@ import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.*;
 import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.UtilisateurRemote;
 import com.banque.courant.ejb.*;
 import com.banque.courant.dao.*;
+import com.banque.courant.dto.ActionRoleDTO;
+import com.banque.courant.dto.DirectionDTO;
+import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.centralisateur.model.*;
 import com.banque.centralisateur.ejb.*;
 
@@ -33,7 +37,7 @@ public class ConnexionDepotServlet extends HttpServlet {
     private CompteCourantDAO compteCourantDAO;
     @EJB
     private OperationDAO operationDAO;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
 
     @Override
@@ -67,6 +71,47 @@ public class ConnexionDepotServlet extends HttpServlet {
         String action = req.getParameter("action");
         if (action == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action manquante");
+            return;
+        }
+
+        HttpSession session = req.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
+
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+        boolean isRole = false;
+
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+
+                for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                    if (actionRoleDTO.getNomTable().equalsIgnoreCase("operation_depot")
+                            && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                        isRole = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (isRole == false) {
+            int compteId = Integer.parseInt(req.getParameter("courant"));
+            CompteCourant compteCourant = compteCourantDAO.findById(compteId);
+
+            List<CompteDepot> comptes = compteDepotEJB.getComptesByClient(compteCourant.getClient().getId());
+            req.setAttribute("compte", compteCourant);
+            req.setAttribute("comptes", comptes);
+            req.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
+            req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
             return;
         }
 
@@ -165,47 +210,48 @@ public class ConnexionDepotServlet extends HttpServlet {
         if (operations == null) {
             operations = new ArrayList<>();
         }
-    
+
         double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
-    
+
         double interetTotal = 0.0;
         double tauxAnnuel = 0.02;
-    
+
         if (!operations.isEmpty()) {
             // Trier les opérations par date
             operations.sort((o1, o2) -> o1.getDateOperation().compareTo(o2.getDateOperation()));
-    
+
             // On initialise le solde temporaire avec le solde réel avant intérêts
             double soldeTemp = solde;
-    
+
             // On part de la date de la première opération
             LocalDateTime datePrecedente = operations.get(0).getDateOperation();
-    
+
             for (OperationDepot op : operations) {
                 // Nombre de jours depuis la dernière opération
                 long jours = ChronoUnit.DAYS.between(datePrecedente, op.getDateOperation());
-    
+
                 // Calcul de l'intérêt sur cette période
                 interetTotal += soldeTemp * tauxAnnuel * jours / 365.0;
-    
+
                 // Mettre à jour le solde temporaire avec l'opération actuelle
                 soldeTemp += op.getMontant();
                 datePrecedente = op.getDateOperation();
             }
-    
+
             // Intérêt jusqu'à aujourd'hui depuis la dernière opération
-            // long joursRestants = ChronoUnit.DAYS.between(datePrecedente, LocalDateTime.now());
+            // long joursRestants = ChronoUnit.DAYS.between(datePrecedente,
+            // LocalDateTime.now());
             // interetTotal += soldeTemp * tauxAnnuel * joursRestants / 365.0;
         }
-    
+
         double soldeInteret = solde + interetTotal;
-    
+
         solde = Math.round(solde * 100.0) / 100.0;
         soldeInteret = Math.round(soldeInteret * 100.0) / 100.0;
         interetTotal = Math.round(interetTotal * 100.0) / 100.0;
-    
+
         request.setAttribute("soldeInteret", soldeInteret);
         request.setAttribute("interet", interetTotal);
     }
-    
+
 }

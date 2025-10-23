@@ -2,12 +2,15 @@ package com.banque.centralisateur.model;
 
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class OperationDepot {
 
     private int id;
     private int compte_id; // correspond à Compte_id côté .NET
     private double montant;
+    
+    @JsonProperty("isValidate")
     private boolean isValidate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -56,6 +59,7 @@ public class OperationDepot {
         this.dateOperation = dateOperation;
     }
 
+    @JsonProperty("isValidate")
     public boolean isValidate() {
         return isValidate;
     }

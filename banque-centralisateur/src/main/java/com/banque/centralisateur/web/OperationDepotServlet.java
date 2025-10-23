@@ -8,7 +8,11 @@ import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.UtilisateurRemote;
 import com.banque.courant.dao.CompteCourantDAO;
+import com.banque.courant.dto.ActionRoleDTO;
+import com.banque.courant.dto.DirectionDTO;
+import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.centralisateur.ejb.CompteDepotEJB;
 import com.banque.centralisateur.ejb.OperationDepotEJB;
 import com.banque.centralisateur.model.CompteDepot;
@@ -30,12 +34,12 @@ public class OperationDepotServlet extends HttpServlet {
     private CompteDepotEJB compteDepotEJB;
     @Inject
     private OperationDepotEJB operationDepotEJB;
-  
+
     @EJB
     private ClientDAO clientDAO;
     @EJB
     private CompteCourantDAO compteCourantDAO;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
 
     @Override
@@ -50,6 +54,41 @@ public class OperationDepotServlet extends HttpServlet {
                 return;
             }
 
+            HttpSession session = request.getSession(false);
+            UtilisateurDTO utilisateurConnecte = null;
+            UtilisateurRemote utilisateurRemote = null;
+
+            UtilisateurDTO utilisateur = null;
+            List<DirectionDTO> directions = null;
+            List<ActionRoleDTO> actionRoles = null;
+            boolean isRole = false;
+
+            if (session != null) {
+                Object o = session.getAttribute("user");
+                if (o instanceof UtilisateurDTO) {
+                    utilisateurConnecte = (UtilisateurDTO) o;
+                    utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                    utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                    directions = utilisateurRemote.getDirections();
+                    actionRoles = utilisateurRemote.getActionRoles();
+
+                    for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                        if (actionRoleDTO.getNomTable().equalsIgnoreCase("operation_depot")
+                                && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                            isRole = true;
+                            break;      
+                        }
+                    }
+                }
+            }
+
+            if (isRole == false) {
+                request.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
+                request.getRequestDispatcher("/operationDepot.jsp").forward(request, response);
+                return;
+            } 
+            
             double montant = Double.parseDouble(request.getParameter("montant"));
             int compteDepotId = Integer.parseInt(request.getParameter("compteDepot"));
             int compteCourantId = Integer.parseInt(request.getParameter("compte"));
@@ -73,7 +112,7 @@ public class OperationDepotServlet extends HttpServlet {
 
             List<OperationDepot> operationDepots = operationDepotEJB.getAllOperations();
             double solde = operationDepotEJB.getSoldeByCompte(compteDepotId);
-            double half = solde / 2; 
+            double half = solde / 2;
             // LocalDateTime currDate = LocalDateTime.now();
             LocalDateTime currDate = dateOperation.toLocalDate().atStartOfDay();
 
@@ -85,15 +124,14 @@ public class OperationDepotServlet extends HttpServlet {
 
                     // OperationDepot opd = new OperationDepot(compteDepotId, montant, currDate);
                     // operationDepotEJB.createOperation(opd);
-                    
+
                     double soldeCourant = operationService.getSoldeActuel(compteCourantId);
 
-
                     if (soldeCourant < montant) {
-                        request.setAttribute("error", "Solde insuffisant dans le compte courant");                    
+                        request.setAttribute("error", "Solde insuffisant dans le compte courant");
                     } else {
                         operationDepotEJB.crediterCompte(compteDepot, compteCourant, montant,
-                        currDate);
+                                currDate);
                         request.setAttribute("message", "Créditation réussie !");
                     }
 
@@ -106,7 +144,7 @@ public class OperationDepotServlet extends HttpServlet {
                     int diff = 0;
 
                     if (operationDepots.isEmpty()) {
-                        diff = 31; 
+                        diff = 31;
                     } else {
                         if (operationDepotEJB.checkDebitOperation(operationDepots)) {
                             LocalDateTime date2 = operationDepotEJB.getLastDebitDate(operationDepots);
@@ -128,7 +166,7 @@ public class OperationDepotServlet extends HttpServlet {
                         // operationDepotEJB.createOperation(opd);
 
                         operationDepotEJB.debiterCompte(compteDepot, compteCourant, montant,
-                        currDate);
+                                currDate);
 
                         request.setAttribute("message", "Débit effectué avec succès !");
                     }
@@ -160,51 +198,51 @@ public class OperationDepotServlet extends HttpServlet {
         if (operations == null) {
             operations = new ArrayList<>();
         }
-    
+
         double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
-    
+
         double interetTotal = 0.0;
-        double tauxAnnuel = 0.02; 
-    
+        double tauxAnnuel = 0.02;
+
         if (!operations.isEmpty()) {
             // Trier les opérations par date
             operations.sort((o1, o2) -> o1.getDateOperation().compareTo(o2.getDateOperation()));
-    
+
             // On initialise le solde temporaire avec le solde réel avant intérêts
             double soldeTemp = solde;
-    
+
             // On part de la date de la première opération
             LocalDateTime datePrecedente = operations.get(0).getDateOperation();
-    
+
             for (OperationDepot op : operations) {
                 // Nombre de jours depuis la dernière opération
                 long jours = ChronoUnit.DAYS.between(datePrecedente, op.getDateOperation());
-    
+
                 // Calcul de l'intérêt sur cette période
                 interetTotal += soldeTemp * tauxAnnuel * jours / 365.0;
-    
+
                 // Mettre à jour le solde temporaire avec l'opération actuelle
                 soldeTemp += op.getMontant();
                 datePrecedente = op.getDateOperation();
             }
-    
+
             // Intérêt jusqu'à aujourd'hui depuis la dernière opération
-            // long joursRestants = ChronoUnit.DAYS.between(datePrecedente, LocalDateTime.now());
+            // long joursRestants = ChronoUnit.DAYS.between(datePrecedente,
+            // LocalDateTime.now());
             // interetTotal += soldeTemp * tauxAnnuel * joursRestants / 365.0;
         }
-    
+
         double soldeInteret = solde + interetTotal;
-    
+
         // Arrondi à 2 décimales
         solde = Math.round(solde * 100.0) / 100.0;
         soldeInteret = Math.round(soldeInteret * 100.0) / 100.0;
         interetTotal = Math.round(interetTotal * 100.0) / 100.0;
-    
+
         request.setAttribute("solde", solde);
         request.setAttribute("soldeInteret", soldeInteret);
         request.setAttribute("interet", interetTotal);
         request.setAttribute("operations", operations);
     }
-    
 
 }

@@ -21,7 +21,7 @@
         <% if (error != null) { %>
             <h3 class="error"><%= error %></h3>
         <% } %>
-        <form action="${pageContext.request.contextPath}/utilisateur" method="POST">
+        <form action="${pageContext.request.contextPath}/login" method="POST">
             <input type="hidden" name="action" value="login">
             <%
                 Object messageObj = request.getAttribute("message");

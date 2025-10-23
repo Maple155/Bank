@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import com.banque.courant.entity.*;
 import com.banque.entity.TypesStatut;
 
+import java.io.Serializable;
 import java.sql.Date;
 
 @Entity
 @Table(name = "pret_statut")
-public class PretStatut {
+public class PretStatut implements Serializable{
+    private static final long serialVersionUID = 1L;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

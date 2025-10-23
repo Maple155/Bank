@@ -6,6 +6,7 @@
 <%
     CompteCourant compte = (CompteCourant) request.getAttribute("compte");
     List<CompteDepot> comptes = (List<CompteDepot>) request.getAttribute("comptes");
+    String error = (String) request.getAttribute("error");
 %>
 
 <html>
@@ -35,7 +36,10 @@
                 <h3><%= messageObj.toString() %></h3>
             <%
                 }
-            %>
+            %>  
+            <% if (error != null) { %>
+                <h3 class="error"><%= error %></h3>
+            <% } %>
 
             <label for="numero">Choisir un compte :</label>
             <select name="numero" id="numero" required>
@@ -55,12 +59,12 @@
 
             <input type="submit" value="Connexion">
         </form>
-        <button class="toggle-btn" onclick="showRegister()">Pas encore de compte ? S’inscrire</button>
+        <button class="toggle-btn" onclick="showRegister()">Creer un compte </button>
     </div>
 
     <!-- Formulaire d'inscription -->
     <div id="registerForm" class="hidden">
-        <h2>S’inscrire</h2>
+        <h2>Creer un compte</h2>
         <form action="${pageContext.request.contextPath}/connexionDepot" method="POST">
             <input type="hidden" name="action" value="register">
             <% if (compte!= null) { %>
