@@ -156,6 +156,9 @@
         <label>Montant à rembourser (MGA) :</label>
         <input type="number" min="0" name="montant" placeholder="Ex: 500 000" required>
 
+        <label>Date du pret :</label>
+        <input type="date" name="date" required>
+
         <input type="submit" value="Rembourser le prêt">
     </form>
 

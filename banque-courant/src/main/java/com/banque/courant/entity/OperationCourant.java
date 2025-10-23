@@ -2,12 +2,14 @@ package com.banque.courant.entity;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "operation_courant")
-public class OperationCourant {
+public class OperationCourant implements Serializable{
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

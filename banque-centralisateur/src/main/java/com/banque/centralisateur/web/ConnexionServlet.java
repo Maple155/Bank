@@ -49,6 +49,17 @@ public class ConnexionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        resp.setContentType("text/html;charset=UTF-8");
+        HttpSession session = req.getSession(false);
+        
+        if (session.getAttribute("actionRoles") != null) {
+            List<ActionRoleDTO> actionRoleDTOs = (List<ActionRoleDTO>) session.getAttribute("actionRoles");
+            for (ActionRoleDTO actionRoleDTO : actionRoleDTOs) {
+                resp.getWriter().println("action : " + actionRoleDTO.toString());        
+            }
+        }
+
+
         List<CompteCourant> comptes = compteCourantDAO.findAll();
         req.setAttribute("comptes", comptes);
         req.getRequestDispatcher("/connexion.jsp").forward(req, resp);
@@ -93,11 +104,11 @@ public class ConnexionServlet extends HttpServlet {
                 utilisateur = utilisateurRemote.getUtilisateurConnecte();
                 directions = utilisateurRemote.getDirections();
                 actionRoles = utilisateurRemote.getActionRoles();
-                
+
             }
         }
 
-        request.setAttribute("utilateur", utilisateur);
+        request.setAttribute("utilisateur", utilisateur);
         request.setAttribute("directions", directions);
         request.setAttribute("actionRoles", actionRoles);
 

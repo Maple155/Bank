@@ -1,11 +1,14 @@
 package com.banque.pret.entity;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.sql.Date;
 
 @Entity
 @Table(name = "remboursement")
-public class Remboursement {
+public class Remboursement implements Serializable{
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

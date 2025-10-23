@@ -119,76 +119,76 @@
 
 </head>
 <body>
-<!-- AFFICHAGE DES DONNÉES UTILISATEUR ADMIN -->
-<% if(utilisateur != null) { %>
-    <div class="admin-info-panel">
-        <div class="admin-info-header">
-            <h2 class="admin-title">👨‍💼 Tableau de Bord Administrateur</h2>
-            <span class="admin-badge">Administrateur</span>
-        </div>
-        
-        <div class="admin-details">
-            <div class="admin-detail-item">
-                <div class="admin-detail-label">Utilisateur</div>
-                <div class="admin-detail-value">
-                    <strong><%= utilisateur.getNom() %></strong>
-                </div>
-            </div>
-            
-            <div class="admin-detail-item">
-                <div class="admin-detail-label">Direction</div>
-                <div class="admin-detail-value">
-                    <%= utilisateur.getDirection() != null ? utilisateur.getDirection().getLibelle() : "Non assigné" %>
-                </div>
-            </div>
-            
-            <div class="admin-detail-item">
-                <div class="admin-detail-label">Rôle</div>
-                <div class="admin-detail-value">
-                    <%= utilisateur.getRole() == 1 ? "Administrateur" : "Utilisateur" %>
-                </div>
-            </div>
-            
-            <div class="admin-detail-item">
-                <div class="admin-detail-label">ID Utilisateur</div>
-                <div class="admin-detail-value">#<%= utilisateur.getId() %></div>
-            </div>
-        </div>
-        
-        <!-- Affichage des directions disponibles -->
-        <% if(directions != null && !directions.isEmpty()) { %>
-            <div class="directions-list">
-                <div class="admin-detail-label">Directions disponibles:</div>
-                <% for(DirectionDTO direction : directions) { %>
-                    <div class="direction-item">
-                        <%= direction.getLibelle() %> (Niveau: <%= direction.getNiveau() %>)
-                    </div>
-                <% } %>
-            </div>
-        <% } %>
-        
-        <!-- Affichage des rôles d'action -->
-        <% if(actionRoles != null && !actionRoles.isEmpty()) { %>
-            <div class="roles-list">
-                <div class="admin-detail-label">Permissions:</div>
-                <% for(ActionRoleDTO role : actionRoles) { %>
-                    <div class="role-item">
-                        <%= role.getNomTable() %> - <%= role.getAction() %> (Role: <%= role.getRole() %>)
-                    </div>
-                <% } %>
-            </div>
-        <% } %>
-    </div>
-<% } %>
 <% if(compte != null) { %>
     <%@ include file="sidebar.jsp" %>
     <main class="main-content">
+        <!-- AFFICHAGE DES DONNÉES UTILISATEUR ADMIN -->
+        <% if(utilisateur != null) { %>
+            <div class="admin-info-panel">
+                <div class="admin-info-header">
+                    <h2 class="admin-title">👨‍💼 Tableau de Bord Administrateur</h2>
+                    <span class="admin-badge">Administrateur</span>
+                </div>
+                
+                <div class="admin-details">
+                    <div class="admin-detail-item">
+                        <div class="admin-detail-label">Utilisateur</div>
+                        <div class="admin-detail-value">
+                            <strong><%= utilisateur.getNom() %></strong>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-detail-item">
+                        <div class="admin-detail-label">Direction</div>
+                        <div class="admin-detail-value">
+                            <%= utilisateur.getDirection() != null ? utilisateur.getDirection().getLibelle() : "Non assigné" %>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-detail-item">
+                        <div class="admin-detail-label">Rôle</div>
+                        <div class="admin-detail-value">
+                            <%= utilisateur.getRole() == 1 ? "Administrateur" : "Utilisateur" %>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-detail-item">
+                        <div class="admin-detail-label">ID Utilisateur</div>
+                        <div class="admin-detail-value">#<%= utilisateur.getId() %></div>
+                    </div>
+                </div>
+                
+                <!-- Affichage des directions disponibles -->
+                <% if(directions != null && !directions.isEmpty()) { %>
+                    <div class="directions-list">
+                        <div class="admin-detail-label">Directions disponibles:</div>
+                        <% for(DirectionDTO direction : directions) { %>
+                            <div class="direction-item">
+                                <%= direction.getLibelle() %> (Niveau: <%= direction.getNiveau() %>)
+                            </div>
+                        <% } %>
+                    </div>
+                <% } %>
+                
+                <!-- Affichage des rôles d'action -->
+                <% if(actionRoles != null && !actionRoles.isEmpty()) { %>
+                    <div class="roles-list">
+                        <div class="admin-detail-label">Permissions:</div>
+                        <% for(ActionRoleDTO role : actionRoles) { %>
+                            <div class="role-item">
+                                <%= role.getNomTable() %> - <%= role.getAction() %> (Role: <%= role.getRole() %>)
+                            </div>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
         <!-- Header avec solde -->
         <header class="welcome-header">
             <div class="welcome-text">
                 <h1>Espace bancaire de <%= compte.getClient().getNom() %></h1>
                 <%-- <p class="subtitle">Votre espace bancaire personnel</p> --%>
-                <strong><%= utilisateur.getNom() %></strong>
+                <%-- <strong><%= utilisateur.getNom() %></strong> --%>
                 
             </div>
             <div class="balance-card" role="status">

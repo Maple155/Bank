@@ -8,11 +8,21 @@ import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+
+import com.banque.change.entity.Change;
+import com.banque.change.remote.ChangeRemote;
 import com.banque.courant.dao.*;
+import com.banque.courant.dto.ActionRoleDTO;
+import com.banque.courant.dto.DirectionDTO;
+import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.courant.ejb.*;
 import com.banque.courant.entity.*;
 import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.UtilisateurRemote;
 import com.banque.entity.*;
 import com.banque.pret.dao.PretDAO;
 import com.banque.pret.ejb.PretServiceEJB;
@@ -22,16 +32,24 @@ import com.banque.pret.remote.PretRemote;
 @WebServlet("/operation")
 public class OperationCourantServlet extends HttpServlet {
 
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private OperationDAO operationDAO;
-    @EJB private PretDAO pretDAO;
-    @EJB private BanqueDAO banqueDAO;
-    @EJB private TransactionDAO transactionDAO;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
+    @EJB
+    private ClientDAO clientDAO;
+    @EJB
+    private CompteCourantDAO compteCourantDAO;
+    @EJB
+    private OperationDAO operationDAO;
+    @EJB
+    private PretDAO pretDAO;
+    @EJB
+    private BanqueDAO banqueDAO;
+    @EJB
+    private TransactionDAO transactionDAO;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote") 
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote")
+    private ChangeRemote changeService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -39,10 +57,22 @@ public class OperationCourantServlet extends HttpServlet {
 
         int compteId = Integer.parseInt(req.getParameter("compte"));
         CompteCourant compte = compteCourantDAO.findById(compteId);
-
         req.setAttribute("compte", compte);
+        List<String> devises = null;
+
+        try {
+            changeService = changeRemotLookup();
+            devises = changeService.getDevisesUniques();
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("error", "Impossible de récupérer les devises : " + e.getMessage());
+        }
+        
+        req.setAttribute("devises", devises);
         req.getRequestDispatcher("/operation.jsp").forward(req, resp);
+        // Toujours forward vers JSP
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -50,6 +80,7 @@ public class OperationCourantServlet extends HttpServlet {
 
         String action = request.getParameter("action");
         double montant = Double.parseDouble(request.getParameter("montant"));
+        String devise = request.getParameter("devise");
         int compteId = Integer.parseInt(request.getParameter("compte"));
         Date dateOperation = Date.valueOf(request.getParameter("date").toString());
         CompteCourant compte = compteCourantDAO.findById(compteId);
@@ -68,74 +99,166 @@ public class OperationCourantServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "crediter": 
-                handleCredit(request, response, compte, montant, dateOperation);
+            case "crediter":
+                handleCredit(request, response, compte, montant, dateOperation, devise);
                 break;
-            case "debiter": 
-                handleDebit(request, response, compte, montant, solde, dateOperation);
+            case "debiter":
+                handleDebit(request, response, compte, montant, solde, dateOperation, devise);
                 break;
-            default: 
+            default:
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action inconnue");
                 break;
         }
     }
 
-    /** ---------------------- HANDLERS ---------------------- **/
-
     private void handleCredit(HttpServletRequest request, HttpServletResponse response,
-                              CompteCourant compte, double montant, Date dateOperation)
+            CompteCourant compte, double montant, Date dateOperation, String devise)
             throws ServletException, IOException {
 
-        // Date date = Date.valueOf(LocalDate.now());
-        Date date = dateOperation;
-        int minimum = 0;
-        if (montant <= 0) {
-            request.setAttribute("compte", compte);
-            request.setAttribute("error",
-                    "Le montant à crediter doit etre positif et superieur à " + minimum);
-            request.getRequestDispatcher("/operation.jsp").forward(request, response);
-            return;
-        }
+        try {
 
-        operationDAO.save(new OperationCourant(compte, montant, date, true));
-        double solde = operationService.getSoldeActuel(compte.getId());
-        prepareClientView(request, compte, solde, "Crédit effectué avec succès");
-        request.getRequestDispatcher("/client.jsp").forward(request, response);
+            changeService = changeRemotLookup();
+
+            HttpSession session = request.getSession(false);
+            UtilisateurDTO utilisateurConnecte = null;
+            UtilisateurRemote utilisateurRemote = null;
+
+            UtilisateurDTO utilisateur = null;
+            List<DirectionDTO> directions = null;
+            List<ActionRoleDTO> actionRoles = null;
+
+            if (session != null) {
+                Object o = session.getAttribute("user");
+                if (o instanceof UtilisateurDTO) {
+                    utilisateurConnecte = (UtilisateurDTO) o;
+                    utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                    utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                    directions = utilisateurRemote.getDirections();
+                    actionRoles = utilisateurRemote.getActionRoles();
+
+                    for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                        if (actionRoleDTO.getNomTable().equalsIgnoreCase("operation_courant")
+                                && actionRoleDTO.getRole() == utilisateur.getRole()) {
+
+                            Change currChange = changeService.getChangeActuel(devise, dateOperation);
+
+                            if (!devise.equalsIgnoreCase("MGA")) {
+                                montant = montant * currChange.getCours();
+                            }
+
+                            // Date date = Date.valueOf(LocalDate.now());
+                            Date date = dateOperation;
+                            int minimum = 0;
+                            if (montant <= 0) {
+                                request.setAttribute("compte", compte);
+                                request.setAttribute("error",
+                                        "Le montant à crediter doit etre positif et superieur à " + minimum);
+                                request.getRequestDispatcher("/operation.jsp").forward(request, response);
+                                return;
+                            }
+
+                            operationDAO.save(new OperationCourant(compte, montant, date, true));
+                            double solde = operationService.getSoldeActuel(compte.getId());
+                            prepareClientView(request, compte, solde, "Crédit effectué avec succès");
+                            request.getRequestDispatcher("/client.jsp").forward(request, response);
+                            return;
+                        }
+                    } 
+                }
+            }
+        request.setAttribute("compte", compte);
+        request.setAttribute("error",
+                "Vous ne pouvez pas effectuer cette operation");
+        request.getRequestDispatcher("/operation.jsp").forward(request, response);
+        return;
+
+        } catch (Exception e ){ }
+
     }
 
     private void handleDebit(HttpServletRequest request, HttpServletResponse response,
-                             CompteCourant compte, double montant, double solde, Date dateOperation)
+            CompteCourant compte, double montant, double solde, Date dateOperation, String devise)
             throws ServletException, IOException {
-        
-        int minimum = 0;
-        
-        if (solde < montant) {
-            request.setAttribute("compte", compte);
-            request.setAttribute("error",
-                    "Solde insuffisant : votre solde actuel est de " + solde + " MGA.");
-            request.getRequestDispatcher("/operation.jsp").forward(request, response);
-            return;
-        } else if (montant <= 0) {
-            request.setAttribute("compte", compte);
-            request.setAttribute("error",
-                    "Le montant à debiter doit etre positif et superieur à " + minimum);
-            request.getRequestDispatcher("/operation.jsp").forward(request, response);
-            return;
-        }
 
-        // Date date = Date.valueOf(LocalDate.now());
-        Date date = dateOperation;
-        operationDAO.save(new OperationCourant(compte, -montant, date, true));
+        try {
 
-        double nouveauSolde = operationService.getSoldeActuel(compte.getId());
-        prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");
-        request.getRequestDispatcher("/client.jsp").forward(request, response);
+            changeService = changeRemotLookup();
+            
+            HttpSession session = request.getSession(false);
+            UtilisateurDTO utilisateurConnecte = null;
+            UtilisateurRemote utilisateurRemote = null;
+
+            UtilisateurDTO utilisateur = null;
+            List<DirectionDTO> directions = null;
+            List<ActionRoleDTO> actionRoles = null;
+
+            boolean role = false;
+
+            if (session != null) {
+                Object o = session.getAttribute("user");
+                if (o instanceof UtilisateurDTO) {
+                    utilisateurConnecte = (UtilisateurDTO) o;
+                    utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                    utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                    directions = utilisateurRemote.getDirections();
+                    actionRoles = utilisateurRemote.getActionRoles();
+
+                    for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                        if (actionRoleDTO.getNomTable().equalsIgnoreCase("operation_courant")
+                                && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                            role = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (role == false) {
+                request.setAttribute("compte", compte);
+                request.setAttribute("error",
+                        "Vous ne pouvez pas effectuer cette operation");
+                request.getRequestDispatcher("/operation.jsp").forward(request, response);
+                return;
+            }
+
+            int minimum = 0;
+
+            if (solde < montant) {
+                request.setAttribute("compte", compte);
+                request.setAttribute("error",
+                        "Solde insuffisant : votre solde actuel est de " + solde + " MGA.");
+                request.getRequestDispatcher("/operation.jsp").forward(request, response);
+                return;
+            } else if (montant <= 0) {
+                request.setAttribute("compte", compte);
+                request.setAttribute("error",
+                        "Le montant à debiter doit etre positif et superieur à " + minimum);
+                request.getRequestDispatcher("/operation.jsp").forward(request, response);
+                return;
+            }
+
+            Change currChange = changeService.getChangeActuel(devise, dateOperation);
+
+            if (!devise.equalsIgnoreCase("MGA")) {
+                montant = montant * currChange.getCours();
+            }
+
+            // Date date = Date.valueOf(LocalDate.now());
+            Date date = dateOperation;
+            operationDAO.save(new OperationCourant(compte, -montant, date, true));
+
+            double nouveauSolde = operationService.getSoldeActuel(compte.getId());
+            prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");
+            request.getRequestDispatcher("/client.jsp").forward(request, response);
+        } catch (Exception e) {}
     }
 
     /** ---------------------- UTILITAIRES ---------------------- **/
 
     private void prepareClientView(HttpServletRequest request, CompteCourant compte,
-                                   double solde, String message) {
+            double solde, String message) {
 
         List<OperationCourant> operations = operationDAO.findByCompte(compte.getId());
         List<Pret> prets = pretDAO.findByCompte(compte.getId());
@@ -169,10 +292,36 @@ public class OperationCourantServlet extends HttpServlet {
         request.setAttribute("sender", sender);
         request.setAttribute("receiver", receiver);
         request.setAttribute("message", message);
+
+        HttpSession session = request.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
+
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+
+            }
+        }
+
+        request.setAttribute("utilisateur", utilisateur);
+        request.setAttribute("directions", directions);
+        request.setAttribute("actionRoles", actionRoles);
     }
 
     private void addPretDetailsToRequest(HttpServletRequest request, List<PretStatut> pretStatuts) {
-        if (pretStatuts == null || pretStatuts.isEmpty()) return;
+        if (pretStatuts == null || pretStatuts.isEmpty())
+            return;
 
         for (PretStatut pretStatut : pretStatuts) {
             Pret pret = pretDAO.findById(pretStatut.getPret().getId());
@@ -182,6 +331,29 @@ public class OperationCourantServlet extends HttpServlet {
             request.setAttribute("pretImpaye_" + pretStatut.getId(), pret);
             request.setAttribute("remboursements_" + pretStatut.getId(), remboursements);
             request.setAttribute("resteAPaye_" + pretStatut.getId(), resteAPaye);
+        }
+    }
+
+    protected ChangeRemote changeRemotLookup () {
+        try {
+            Properties props = new Properties();
+            props.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
+                        "org.wildfly.naming.client.WildFlyInitialContextFactory");
+            props.put(javax.naming.Context.PROVIDER_URL, "http-remoting://localhost:8280"); // port HTTP ou remoting
+            props.put(javax.naming.Context.SECURITY_PRINCIPAL, "test"); // si login WildFly
+            props.put(javax.naming.Context.SECURITY_CREDENTIALS, "test");
+
+            InitialContext ctx = new InitialContext(props);
+
+            changeService = (ChangeRemote) ctx.lookup(
+                "ejb:/banque-change-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote"
+            );
+
+            return changeService;
+        } catch (Exception e) {
+            // TODO: handle exception
+
+            return null;
         }
     }
 }

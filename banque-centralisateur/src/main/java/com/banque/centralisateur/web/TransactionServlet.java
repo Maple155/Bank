@@ -6,29 +6,39 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.List;
 
 import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.TransactionRemote;
+import com.banque.courant.remote.UtilisateurRemote;
 import com.banque.centralisateur.ejb.CompteDepotEJB;
 import com.banque.centralisateur.ejb.OperationDepotEJB;
 import com.banque.courant.dao.ClientDAO;
 import com.banque.courant.dao.TransactionDAO;
+import com.banque.courant.dto.ActionRoleDTO;
+import com.banque.courant.dto.DirectionDTO;
+import com.banque.courant.dto.UtilisateurDTO;
 
 @WebServlet("/transaction")
 public class TransactionServlet extends HttpServlet {
 
-    @Inject private CompteDepotEJB compteDepotEJB;
-    @Inject private OperationDepotEJB ODE;
+    @Inject
+    private CompteDepotEJB compteDepotEJB;
+    @Inject
+    private OperationDepotEJB ODE;
 
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private TransactionDAO transactionDAO;
+    @EJB
+    private ClientDAO clientDAO;
+    @EJB
+    private CompteCourantDAO compteCourantDAO;
+    @EJB
+    private TransactionDAO transactionDAO;
 
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote OSE;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
     private TransactionRemote TSE;
 
     private void forward(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -47,7 +57,8 @@ public class TransactionServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         int compteId = Integer.parseInt(request.getParameter("compte"));
         CompteCourant compte = compteCourantDAO.findById(compteId);
         double solde = OSE.getSoldeActuel(compteId);
@@ -55,20 +66,55 @@ public class TransactionServlet extends HttpServlet {
 
         request.setAttribute("compte", compte);
 
-        try {
-            switch (action) {
-                case "search":
-                    handleSearch(request, solde);
-                    break;
-                case "send":
-                    handleSend(request, solde, compte);
-                    break;
-                default:
-                    request.setAttribute("error", "Action inconnue");
+        HttpSession session = request.getSession(false);
+        UtilisateurDTO utilisateurConnecte = null;
+        UtilisateurRemote utilisateurRemote = null;
+
+        UtilisateurDTO utilisateur = null;
+        List<DirectionDTO> directions = null;
+        List<ActionRoleDTO> actionRoles = null;
+        boolean isRole = false;
+
+        if (session != null) {
+            Object o = session.getAttribute("user");
+            if (o instanceof UtilisateurDTO) {
+                utilisateurConnecte = (UtilisateurDTO) o;
+                utilisateurRemote = (UtilisateurRemote) session.getAttribute("sessionUtilisateur");
+
+                utilisateur = utilisateurRemote.getUtilisateurConnecte();
+                directions = utilisateurRemote.getDirections();
+                actionRoles = utilisateurRemote.getActionRoles();
+
+                for (ActionRoleDTO actionRoleDTO : actionRoles) {
+                    if (actionRoleDTO.getNomTable().equalsIgnoreCase("operation_courant")
+                            && actionRoleDTO.getRole() == utilisateur.getRole()) {
+                        isRole = true;
+                        break;
+                    }
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Erreur inattendue");
+        }
+
+        if (isRole == false) {
+            request.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
+            return;
+        } else {
+
+            try {
+                switch (action) {
+                    case "search":
+                        handleSearch(request, solde);
+                        break;
+                    case "send":
+                        handleSend(request, solde, compte);
+                        break;
+                    default:
+                        request.setAttribute("error", "Action inconnue");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.setAttribute("error", "Erreur inattendue");
+            }
         }
 
         forward(request, response);
@@ -83,7 +129,7 @@ public class TransactionServlet extends HttpServlet {
         if (receiver == null) {
             request.setAttribute("error", "Le destinataire n'existe pas");
         } else if (request.getAttribute("compte") != null &&
-                   ((CompteCourant) request.getAttribute("compte")).getNumero().equals(receiver.getNumero())) {
+                ((CompteCourant) request.getAttribute("compte")).getNumero().equals(receiver.getNumero())) {
             request.setAttribute("error", "Le destinataire ne peut pas être vous-même");
         } else {
             request.setAttribute("receiver", receiver);

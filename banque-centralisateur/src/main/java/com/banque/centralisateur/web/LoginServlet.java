@@ -30,7 +30,8 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
+        resp.setContentType("text/html;charset=UTF-8");
+        
         String login = req.getParameter("login");
         String mdp = req.getParameter("mdp");
 
@@ -45,12 +46,21 @@ public class LoginServlet extends HttpServlet {
                 // créer / récupérer la session et stocker l'utilisateur
                 HttpSession session = req.getSession(true);
                 session.setAttribute("sessionUtilisateur", sessionUtilisateur);
-                session.setAttribute("user", utilisateur);
                 
-                // durée d'inactivité : 30 minutes (exemple)
-                session.setMaxInactiveInterval(30 * 60);
+                session.setAttribute("user", utilisateur);
+                session.setAttribute("actionRoles", sessionUtilisateur.getActionRoles());
+                session.setAttribute("directions", sessionUtilisateur.getDirections());
 
-                req.getRequestDispatcher("/connexion").forward(req, resp);
+                // durée d'inactivité : 30 minutes (exemple)
+                // session.setMaxInactiveInterval(30 * 60);
+
+                for (ActionRoleDTO actions : sessionUtilisateur.getActionRoles()) {
+                    System.out.println("actions : " + actions.toString());
+                    resp.getWriter().println("actions : " + actions.toString());
+                }
+
+                // req.getRequestDispatcher("/connexion").forward(req, resp);
+                resp.sendRedirect(req.getContextPath() + "/connexion");
 
             } else {
                 req.setAttribute("error", "Login ou mot de passe incorrect");

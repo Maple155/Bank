@@ -78,7 +78,7 @@ namespace BanqueDepot.Models
                       .IsRequired();
 
                 entity.Property(e => e.IsValidate)
-                      .HasColumnName("isValidate")
+                      .HasColumnName("isvalidate")
                       .IsRequired();
             });
         }

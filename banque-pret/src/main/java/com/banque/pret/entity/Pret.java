@@ -2,11 +2,14 @@ package com.banque.pret.entity;
 
 import jakarta.persistence.*;
 import com.banque.courant.entity.*;
+import java.io.Serializable;
 import java.sql.Date;
 
 @Entity
 @Table(name = "pret")
-public class Pret {
+public class Pret implements Serializable{
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

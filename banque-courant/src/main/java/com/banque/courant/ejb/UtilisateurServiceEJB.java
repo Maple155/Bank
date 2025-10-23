@@ -148,11 +148,11 @@ public class UtilisateurServiceEJB implements UtilisateurRemote {
     @PreDestroy
     public void ejbRemove() {
         try {
-            System.out.println("Suppression des donnees...");
-            em.createQuery("DELETE FROM Action_role").executeUpdate();
-            em.createQuery("DELETE FROM Utilisateur").executeUpdate();
-            em.createQuery("DELETE FROM Direction").executeUpdate();
-            System.out.println("Tables videes avec succes !");
+            // System.out.println("Suppression des donnees...");
+            // em.createQuery("DELETE FROM Action_role").executeUpdate();
+            // em.createQuery("DELETE FROM Utilisateur").executeUpdate();
+            // em.createQuery("DELETE FROM Direction").executeUpdate();
+            // System.out.println("Tables videes avec succes !");
         } catch (Exception e) {
             System.err.println("Erreur lors de la suppression: " + e.getMessage());
             e.printStackTrace();

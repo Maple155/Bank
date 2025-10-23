@@ -81,7 +81,7 @@
             </tr>
             <% 
                 for (OperationDepot op : operations) { 
-                   if (op) { 
+                   if (op.isValidate()) { 
             %>
                 <tr>
                     <td><%= op.getMontant() %></td>
