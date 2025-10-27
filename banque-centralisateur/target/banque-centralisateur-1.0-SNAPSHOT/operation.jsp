@@ -6,6 +6,7 @@
 <%
     CompteCourant compte = (CompteCourant) request.getAttribute("compte");
     List<String> devises = (List<String>) request.getAttribute("devises");
+    List<String> devisesRest = (List<String>) request.getAttribute("devisesRest");
     String error = (String) request.getAttribute("error");
 %>
 
@@ -60,6 +61,13 @@
                         for(String devise : devises) { 
                 %>
                     <option value="<%= devise %>"><%=  devise %></option>
+                <% } } %>
+                <option value="MGA">WEBSERVICE</option>
+                <% 
+                    if (devisesRest != null) {
+                        for(String devRest : devisesRest) { 
+                %>
+                    <option value="<%= devRest %>"><%=  devRest %></option>
                 <% } } %>
             </select>
         </div>

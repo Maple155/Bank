@@ -4,7 +4,12 @@ import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +33,14 @@ import com.banque.pret.dao.PretDAO;
 import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import com.google.gson.Gson;
+import java.util.Arrays;
 
 @WebServlet("/operation")
 public class OperationCourantServlet extends HttpServlet {
@@ -48,7 +61,6 @@ public class OperationCourantServlet extends HttpServlet {
     private OperationRemote operationService;
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote")
     private ChangeRemote changeService;
 
     @Override
@@ -59,20 +71,21 @@ public class OperationCourantServlet extends HttpServlet {
         CompteCourant compte = compteCourantDAO.findById(compteId);
         req.setAttribute("compte", compte);
         List<String> devises = null;
-
+        List<String> deviseREST = null;
         try {
+            deviseREST = getDevises();
             changeService = changeRemotLookup();
             devises = changeService.getDevisesUniques();
         } catch (Exception e) {
             e.printStackTrace();
             req.setAttribute("error", "Impossible de récupérer les devises : " + e.getMessage());
         }
-        
+
+        req.setAttribute("devisesRest", deviseREST);
         req.setAttribute("devises", devises);
         req.getRequestDispatcher("/operation.jsp").forward(req, resp);
         // Toujours forward vers JSP
     }
-
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -164,16 +177,17 @@ public class OperationCourantServlet extends HttpServlet {
                             request.getRequestDispatcher("/client.jsp").forward(request, response);
                             return;
                         }
-                    } 
+                    }
                 }
             }
-        request.setAttribute("compte", compte);
-        request.setAttribute("error",
-                "Vous ne pouvez pas effectuer cette operation");
-        request.getRequestDispatcher("/operation.jsp").forward(request, response);
-        return;
+            request.setAttribute("compte", compte);
+            request.setAttribute("error",
+                    "Vous ne pouvez pas effectuer cette operation");
+            request.getRequestDispatcher("/operation.jsp").forward(request, response);
+            return;
 
-        } catch (Exception e ){ }
+        } catch (Exception e) {
+        }
 
     }
 
@@ -184,7 +198,7 @@ public class OperationCourantServlet extends HttpServlet {
         try {
 
             changeService = changeRemotLookup();
-            
+
             HttpSession session = request.getSession(false);
             UtilisateurDTO utilisateurConnecte = null;
             UtilisateurRemote utilisateurRemote = null;
@@ -252,7 +266,8 @@ public class OperationCourantServlet extends HttpServlet {
             double nouveauSolde = operationService.getSoldeActuel(compte.getId());
             prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");
             request.getRequestDispatcher("/client.jsp").forward(request, response);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     /** ---------------------- UTILITAIRES ---------------------- **/
@@ -334,11 +349,11 @@ public class OperationCourantServlet extends HttpServlet {
         }
     }
 
-    protected ChangeRemote changeRemotLookup () {
+    protected ChangeRemote changeRemotLookup() {
         try {
             Properties props = new Properties();
             props.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
-                        "org.wildfly.naming.client.WildFlyInitialContextFactory");
+                    "org.wildfly.naming.client.WildFlyInitialContextFactory");
             props.put(javax.naming.Context.PROVIDER_URL, "http-remoting://localhost:8280"); // port HTTP ou remoting
             props.put(javax.naming.Context.SECURITY_PRINCIPAL, "test"); // si login WildFly
             props.put(javax.naming.Context.SECURITY_CREDENTIALS, "test");
@@ -346,8 +361,7 @@ public class OperationCourantServlet extends HttpServlet {
             InitialContext ctx = new InitialContext(props);
 
             changeService = (ChangeRemote) ctx.lookup(
-                "ejb:/banque-change-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote"
-            );
+                    "ejb:/banque-change-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote");
 
             return changeService;
         } catch (Exception e) {
@@ -356,4 +370,62 @@ public class OperationCourantServlet extends HttpServlet {
             return null;
         }
     }
+
+    protected List<String> getDevises() {
+        try {
+            URL url = new URL("http://localhost:8280/banque-change/api/change/devises");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+
+            if (conn.getResponseCode() != 200) {
+                throw new RuntimeException("HTTP error code : " + conn.getResponseCode());
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+            StringBuilder sb = new StringBuilder();
+            String output;
+            while ((output = br.readLine()) != null) {
+                sb.append(output);
+            }
+            conn.disconnect();
+
+            Gson gson = new Gson();
+            String[] devises = gson.fromJson(sb.toString(), String[].class);
+            return Arrays.asList(devises);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    // protected List<Change> getChangesByDevise(String devise) {
+    //     try {
+    //         URL url = new URL("http-remoting://localhost:8280/banque-change/api/change/" + devise);
+    //         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    //         conn.setRequestMethod("GET");
+    //         conn.setRequestProperty("Accept", "application/json");
+
+    //         if (conn.getResponseCode() != 200) {
+    //             throw new RuntimeException("HTTP error code : " + conn.getResponseCode());
+    //         }
+
+    //         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    //         StringBuilder sb = new StringBuilder();
+    //         String output;
+    //         while ((output = br.readLine()) != null) {
+    //             sb.append(output);
+    //         }
+    //         conn.disconnect();
+
+    //         ObjectMapper mapper = new ObjectMapper(); 
+    //         return Arrays.asList(mapper.readValue(sb.toString(), Change[].class));
+
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //         return List.of();
+    //     }
+    // }
+
 }

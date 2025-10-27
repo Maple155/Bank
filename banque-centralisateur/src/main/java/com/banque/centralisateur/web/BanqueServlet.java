@@ -37,7 +37,9 @@ public class BanqueServlet extends HttpServlet {
     @EJB private TypeStatutDAO typeStatutDAO;
     @EJB private PretStatutDAO pretStatutDAO;
     @EJB private BanqueDAO banqueDAO;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
+    // @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
+    
+    @EJB
     private CompteCourantRemote compteCourantService;
     @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
     private OperationRemote operationService;

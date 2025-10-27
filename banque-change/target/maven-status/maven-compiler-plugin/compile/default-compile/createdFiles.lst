@@ -1,4 +1,6 @@
-com\banque\change\entity\Change.class
 com\banque\change\ejb\ChangeServiceEJB.class
 com\banque\change\remote\ChangeRemote.class
+com\banque\change\ejb\ChangeResource.class
+com\banque\change\ejb\RestApplication.class
+com\banque\change\entity\Change.class
 com\banque\change\ejb\ChangeFileReader.class

@@ -12,6 +12,8 @@ EXPOSE 8080
 CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
 
 
+# dans le terminal banque-change
+
 # docker stop banque-change
 # docker rm banque-change
 # docker run -d --name banque-change -p 8280:8080 -p 10091:9990 banque-change /opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0
@@ -20,3 +22,6 @@ CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
 # Creer utilisateur test test (b) et test test (a) avec docker exec -it banque-change /bin/bash 
 # puis /opt/jboss/wildfly/bin/add-user.sh 
 # enfin verification cat /opt/jboss/wildfly/standalone/configuration/mgmt-users.properties
+
+# A chaque modif utiliser 
+# docker cp target/banque-change-1.0-SNAPSHOT.jar banque-change:/opt/jboss/wildfly/standalone/deployments/
