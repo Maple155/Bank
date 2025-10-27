@@ -1,8 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application xmlns="http://java.sun.com/xml/ns/javaee"
+<application xmlns="https://jakarta.ee/xml/ns/jakartaee"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-             http://java.sun.com/xml/ns/javaee/application_6.xsd"
-             version="6">
-  <display-name>Banque EAR</display-name>
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                                 https://jakarta.ee/xml/ns/jakartaee/application_10.xsd"
+             version="10">
+    
+    <display-name>banque-ear</display-name>
+
+    <!-- Module EJB : Compte Courant -->
+    <module>
+        <ejb>banque-courant-1.0-SNAPSHOT.jar</ejb>
+    </module>
+
+    <!-- Module EJB : Prêt -->
+    <module>
+        <ejb>banque-pret-1.0-SNAPSHOT.jar</ejb>
+    </module>
+
+    <!-- Module Web : Change -->
+    <module>
+        <web>
+            <web-uri>banque-change.war</web-uri>
+            <context-root>/change</context-root>
+        </web>
+    </module>
+
+    <!-- Module Web : Centralisateur -->
+    <module>
+        <web>
+            <web-uri>banque-centralisateur-1.0-SNAPSHOT.war</web-uri>
+            <context-root>/centralisateur</context-root>
+        </web>
+    </module>
+
+    <!-- Module JAR : Entités -->
+    <module>
+        <java>banque-entities-1.0-SNAPSHOT.jar</java>
+    </module>
+
 </application>

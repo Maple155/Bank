@@ -37,7 +37,7 @@ public class ConnexionDepotServlet extends HttpServlet {
     private CompteCourantDAO compteCourantDAO;
     @EJB
     private OperationDAO operationDAO;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
 
     @Override

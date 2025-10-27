@@ -57,10 +57,12 @@ public class OperationCourantServlet extends HttpServlet {
     private BanqueDAO banqueDAO;
     @EJB
     private TransactionDAO transactionDAO;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+   
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
+   
     private ChangeRemote changeService;
 
     @Override
@@ -361,7 +363,7 @@ public class OperationCourantServlet extends HttpServlet {
             InitialContext ctx = new InitialContext(props);
 
             changeService = (ChangeRemote) ctx.lookup(
-                    "ejb:/banque-change-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote");
+                    "ejb:/banque-change/ChangeServiceEJB!com.banque.change.remote.ChangeRemote");
 
             return changeService;
         } catch (Exception e) {

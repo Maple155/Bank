@@ -1,12 +1,10 @@
 FROM quay.io/wildfly/wildfly:33.0.1.Final-jdk21
 
-# Copie de ton JAR/WAR dans le dossier de déploiement de WildFly
-COPY target/banque-change-1.0-SNAPSHOT.jar /opt/jboss/wildfly/standalone/deployments/
-# Forcer le déploiement
-RUN touch /opt/jboss/wildfly/standalone/deployments/banque-change-1.0-SNAPSHOT.jar.dodeploy
+# Copie du WAR dans le dossier de déploiement
+COPY target/banque-change.war /opt/jboss/wildfly/standalone/deployments/
 
-# Exposer le port HTTP
-EXPOSE 8080
+# Forcer le déploiement
+RUN touch /opt/jboss/wildfly/standalone/deployments/banque-change.war.dodeploy
 
 # Démarrer WildFly
 CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
@@ -24,4 +22,4 @@ CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
 # enfin verification cat /opt/jboss/wildfly/standalone/configuration/mgmt-users.properties
 
 # A chaque modif utiliser 
-# docker cp target/banque-change-1.0-SNAPSHOT.jar banque-change:/opt/jboss/wildfly/standalone/deployments/
+# docker cp target/banque-change.war banque-change:/opt/jboss/wildfly/standalone/deployments/
