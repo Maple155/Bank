@@ -363,7 +363,7 @@ public class OperationCourantServlet extends HttpServlet {
             InitialContext ctx = new InitialContext(props);
 
             changeService = (ChangeRemote) ctx.lookup(
-                    "ejb:/banque-change/ChangeServiceEJB!com.banque.change.remote.ChangeRemote");
+                    "ejb:/banque-change-1.0-SNAPSHOT/ChangeServiceEJB!com.banque.change.remote.ChangeRemote");
 
             return changeService;
         } catch (Exception e) {

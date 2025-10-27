@@ -1,51 +1,124 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>com.banque</groupId>
     <artifactId>bank_project</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>banque-ear</artifactId>
-  <packaging>ear</packaging>
-  <dependencies>
 
+  <groupId>com.banque</groupId>
+  <artifactId>banque-ear</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>ear</packaging>
+  <name>banque-ear</name>
+
+  <properties>
+    <!-- Ensure this matches your project JDK/maven compiler settings -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+    <ear.defaultLibBundleDir>lib</ear.defaultLibBundleDir>
+  </properties>
+
+  <dependencies>
+    <!-- EJB modules (these will be packaged as EJB modules inside the EAR) -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-courant</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>ejb</type>
-    </dependency>
-  
-    <dependency>
-      <groupId>com.banque</groupId>
-      <artifactId>banque-change</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <type>war</type>
     </dependency>
 
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-pret</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>ejb</type>
     </dependency>
 
+    <!-- Entities / shared classes as plain jar (goes into lib/) -->
     <dependency>
-        <groupId>com.banque</groupId>
-        <artifactId>banque-entities</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <type>jar</type>
+      <groupId>com.banque</groupId>
+      <artifactId>banque-entities</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
     </dependency>
 
+    <!-- Centralisateur web application (WAR) - packaged as a webModule in the EAR -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-centralisateur</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <type>war</type>
     </dependency>
-  
+
+    <!-- Client JAR for banque-change produced with classifier "client".
+         This provides the remote interfaces/entities needed by the WAR at runtime,
+         without packaging the banque-change implementation (war/ejb) into the EAR.
+         IMPORTANT: do NOT include the banque-change war/ejb here to avoid duplicate deployment
+         if banque-change is deployed separately (e.g. in Docker). -->
+    <dependency>
+      <groupId>com.banque</groupId>
+      <artifactId>banque-change</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+      <classifier>client</classifier>
+    </dependency>
+
+    <!-- If you still want to include banque-change implementation inside the EAR instead of Docker,
+         replace the client dependency above with the war/ejb module (type war or ejb) and remove the Docker deployment. -->
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Ensure the EAR plugin packages modules correctly and puts shared jars in lib/ -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <defaultLibBundleDir>${ear.defaultLibBundleDir}</defaultLibBundleDir>
+
+          <modules>
+            <!-- webModule entry for banque-centralisateur -->
+            <webModule>
+              <groupId>com.banque</groupId>
+              <artifactId>banque-centralisateur</artifactId>
+              <contextRoot>/banque-centralisateur</contextRoot>
+            </webModule>
+
+            <!-- EJB modules -->
+            <ejbModule>
+              <groupId>com.banque</groupId>
+              <artifactId>banque-courant</artifactId>
+            </ejbModule>
+
+            <ejbModule>
+              <groupId>com.banque</groupId>
+              <artifactId>banque-pret</artifactId>
+            </ejbModule>
+
+            <!-- Note: banque-change implementation is intentionally NOT added as a module here
+                 because you deploy it separately via Docker. The client JAR (classifier client)
+                 is added as a library dependency and will be copied into lib/. -->
+          </modules>
+
+          <!-- Optional: include application.xml if you need a specific descriptor; default is fine -->
+          <generateApplicationXml>true</generateApplicationXml>
+        </configuration>
+      </plugin>
+
+      <!-- Compiler (keeps build consistent with other modules) -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

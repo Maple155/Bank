@@ -4,7 +4,6 @@ import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.centralisateur.session.SessionCentralisateurRemote;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

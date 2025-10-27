@@ -2,21 +2,16 @@
 <application xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_7.xsd" version="7">
   <display-name>banque-ear</display-name>
   <module>
-    <ejb>com.banque-banque-courant-1.0-SNAPSHOT.jar</ejb>
-  </module>
-  <module>
-    <web>
-      <web-uri>com.banque-banque-change-1.0-SNAPSHOT.war</web-uri>
-      <context-root>/banque-change</context-root>
-    </web>
-  </module>
-  <module>
-    <ejb>com.banque-banque-pret-1.0-SNAPSHOT.jar</ejb>
-  </module>
-  <module>
     <web>
       <web-uri>com.banque-banque-centralisateur-1.0-SNAPSHOT.war</web-uri>
       <context-root>/banque-centralisateur</context-root>
     </web>
   </module>
+  <module>
+    <ejb>com.banque-banque-courant-1.0-SNAPSHOT.jar</ejb>
+  </module>
+  <module>
+    <ejb>com.banque-banque-pret-1.0-SNAPSHOT.jar</ejb>
+  </module>
+  <library-directory>lib</library-directory>
 </application>
