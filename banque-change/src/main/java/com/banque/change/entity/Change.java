@@ -1,7 +1,6 @@
 package com.banque.change.entity;
 
 import jakarta.persistence.*;
-import com.banque.entity.*;
 
 import java.io.Serializable;
 import java.sql.Date;

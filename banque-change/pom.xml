@@ -1,106 +1,86 @@
-<!-- <project xmlns="http://maven.apache.org/POM/4.0.0" 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.banque</groupId>
-    <artifactId>bank_project</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>banque-change</artifactId>
-  <packaging>ejb</packaging>
-  <dependencies>
-    <dependency>
-      <groupId>jakarta.platform</groupId>
-      <artifactId>jakarta.jakartaee-api</artifactId>
-      <version>10.0.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.1</version>
-    </dependency>
-    <dependency>
-        <groupId>com.banque</groupId>
-        <artifactId>banque-entities</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
-</project> -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
-  <modelVersion>4.0.0</modelVersion>
-  
-  <parent>
-    <groupId>com.banque</groupId>
-    <artifactId>bank_project</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  
+  <groupId>com.banque</groupId>
   <artifactId>banque-change</artifactId>
-  <packaging>war</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>banque-change</name>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>17</maven.compiler.release>
     <failOnMissingWebXml>false</failOnMissingWebXml>
   </properties>
 
   <dependencies>
-    <!-- Jakarta EE API fourni par WildFly -->
+    <!-- Jakarta EE API: provided by the WildFly container -->
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
-      <version>10.0.0</version>
+      <version>9.1.0</version>
       <scope>provided</scope>
     </dependency>
 
-    <!-- PostgreSQL -->
+    <!-- Ajoute d'autres dépendances nécessaires à l'implémentation EJB (JSON, logging...) -->
     <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.7.1</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.15.2</version>
     </dependency>
 
-    <!-- Entités -->
     <dependency>
-      <groupId>com.banque</groupId>
-      <artifactId>banque-entities</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>2.15.2</version>
     </dependency>
+
   </dependencies>
 
   <build>
-    <finalName>banque-change</finalName>
     <plugins>
+
       <!-- Compiler plugin -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
         <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
+          <release>${maven.compiler.release}</release>
         </configuration>
       </plugin>
 
-      <!-- WAR plugin -->
+      <!-- Standard JAR (implémentation EJB) will be produced as usual -->
+      <!-- Add a "client" JAR that contains only API packages (interfaces/entities needed by clients) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>3.3.2</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-        </configuration>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions>
+          <execution>
+            <id>client-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>client</classifier>
+              <includes>
+                <!-- Ajuste ces include en fonction des packages utilisés côté client -->
+                <include>com/banque/change/remote/**</include>
+                <include>com/banque/change/entity/**</include>
+                <include>com/banque/change/dto/**</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
+
+      <!-- Optional: shade plugin could be used if you want a single "client" jar with specific content.
+           Here we use maven-jar-plugin includes to keep things simple. -->
+
     </plugins>
   </build>
-
 </project>
