@@ -12,13 +12,11 @@ import java.util.List;
 
 import com.banque.courant.dao.*;
 import com.banque.courant.dto.*;
-import com.banque.courant.ejb.*;
 import com.banque.courant.entity.*;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.TransactionRemote;
 import com.banque.entity.*;
 import com.banque.pret.dao.PretDAO;
-import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
 
@@ -38,11 +36,11 @@ public class ConnexionServlet extends HttpServlet {
     @EJB
     private TransactionDAO transactionDAO;
 
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
-    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
     private TransactionRemote transactionService;
 
     @Override

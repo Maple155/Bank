@@ -1,4 +1,4 @@
-package com.banque.change.ejb;
+package com.banque.change.web;
 
 import com.banque.change.entity.Change;
 import com.banque.change.remote.ChangeRemote;

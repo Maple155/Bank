@@ -23,7 +23,7 @@
       <groupId>com.banque</groupId>
       <artifactId>banque-change</artifactId>
       <version>1.0-SNAPSHOT</version>
-      <type>ejb</type>
+      <type>war</type>
     </dependency>
 
     <dependency>

@@ -7,17 +7,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.*;
-import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.entity.*;
 import com.banque.pret.dao.*;
-import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
 import com.banque.centralisateur.ejb.*;
 import com.banque.centralisateur.model.CompteDepot;
 import com.banque.courant.dao.*;
-import com.banque.courant.ejb.*;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -37,13 +34,10 @@ public class BanqueServlet extends HttpServlet {
     @EJB private TypeStatutDAO typeStatutDAO;
     @EJB private PretStatutDAO pretStatutDAO;
     @EJB private BanqueDAO banqueDAO;
-    // @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
     
-    @EJB
-    private CompteCourantRemote compteCourantService;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
     private OperationRemote operationService;
-    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-centralisateur-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")    
+    @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")    
     private PretRemote pretService;
 
     @Override

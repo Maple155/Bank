@@ -2,14 +2,12 @@ package com.banque.centralisateur.ejb;
 
 import com.banque.centralisateur.model.CompteDepot;
 import com.banque.centralisateur.model.OperationDepot;
-import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.entity.OperationCourant;
 
 import jakarta.ejb.EJB;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -29,8 +27,6 @@ import java.util.ArrayList;
 @ApplicationScoped
 public class OperationDepotEJB {
 
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
     @EJB
     private OperationDAO operationDAO;
 

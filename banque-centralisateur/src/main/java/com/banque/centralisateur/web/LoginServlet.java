@@ -18,9 +18,6 @@ import javax.naming.InitialContext;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
-    @EJB
-    private SessionCentralisateurRemote sessionCentralisateur;
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
