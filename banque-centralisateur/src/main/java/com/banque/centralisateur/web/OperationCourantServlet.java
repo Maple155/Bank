@@ -375,7 +375,7 @@ public class OperationCourantServlet extends HttpServlet {
 
     protected List<String> getDevises() {
         try {
-            URL url = new URL("http://localhost:8280/banque-change/api/change/devises");
+            URL url = new URL("http://localhost:8280/banque-change-1.0-SNAPSHOT/api/change/devises");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
@@ -404,7 +404,7 @@ public class OperationCourantServlet extends HttpServlet {
 
     // protected List<Change> getChangesByDevise(String devise) {
     //     try {
-    //         URL url = new URL("http-remoting://localhost:8280/banque-change/api/change/" + devise);
+    //         URL url = new URL("http://localhost:8280/banque-change-1.0-SNAPSHOT/api/change/" + devise);
     //         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     //         conn.setRequestMethod("GET");
     //         conn.setRequestProperty("Accept", "application/json");
