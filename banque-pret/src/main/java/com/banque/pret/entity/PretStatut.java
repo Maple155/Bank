@@ -1,7 +1,6 @@
 package com.banque.pret.entity;
 
 import jakarta.persistence.*;
-import com.banque.courant.entity.*;
 import com.banque.entity.TypesStatut;
 
 import java.io.Serializable;

@@ -4,62 +4,42 @@ import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Properties;
-
-import javax.naming.Context;
 import javax.naming.InitialContext;
-
 import com.banque.change.entity.Change;
 import com.banque.change.remote.ChangeRemote;
-import com.banque.courant.dao.*;
 import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
-import com.banque.courant.ejb.*;
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
+import com.banque.courant.remote.TransactionRemote;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.entity.*;
-import com.banque.pret.dao.PretDAO;
-import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import com.google.gson.Gson;
 import java.util.Arrays;
 
 @WebServlet("/operation")
 public class OperationCourantServlet extends HttpServlet {
 
-    @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private PretDAO pretDAO;
-    @EJB
-    private BanqueDAO banqueDAO;
-    @EJB
-    private TransactionDAO transactionDAO;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
+    private TransactionRemote transactionService;
    
+    @EJB
+    private CompteCourantRemote compteCourantService;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
    
@@ -70,7 +50,7 @@ public class OperationCourantServlet extends HttpServlet {
             throws ServletException, IOException {
 
         int compteId = Integer.parseInt(req.getParameter("compte"));
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         req.setAttribute("compte", compte);
         List<String> devises = null;
         List<String> deviseREST = null;
@@ -98,7 +78,7 @@ public class OperationCourantServlet extends HttpServlet {
         String devise = request.getParameter("devise");
         int compteId = Integer.parseInt(request.getParameter("compte"));
         Date dateOperation = Date.valueOf(request.getParameter("date").toString());
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         double solde = operationService.getSoldeActuel(compteId);
 
         if (compte == null) {
@@ -173,7 +153,7 @@ public class OperationCourantServlet extends HttpServlet {
                                 return;
                             }
 
-                            operationDAO.save(new OperationCourant(compte, montant, date, true));
+                            operationService.save(new OperationCourant(compte, montant, date, true));
                             double solde = operationService.getSoldeActuel(compte.getId());
                             prepareClientView(request, compte, solde, "Crédit effectué avec succès");
                             request.getRequestDispatcher("/client.jsp").forward(request, response);
@@ -263,7 +243,7 @@ public class OperationCourantServlet extends HttpServlet {
 
             // Date date = Date.valueOf(LocalDate.now());
             Date date = dateOperation;
-            operationDAO.save(new OperationCourant(compte, -montant, date, true));
+            operationService.save(new OperationCourant(compte, -montant, date, true));
 
             double nouveauSolde = operationService.getSoldeActuel(compte.getId());
             prepareClientView(request, compte, nouveauSolde, "Débit effectué avec succès");
@@ -277,8 +257,8 @@ public class OperationCourantServlet extends HttpServlet {
     private void prepareClientView(HttpServletRequest request, CompteCourant compte,
             double solde, String message) {
 
-        List<OperationCourant> operations = operationDAO.findByCompte(compte.getId());
-        List<Pret> prets = pretDAO.findByCompte(compte.getId());
+        List<OperationCourant> operations = operationService.findByCompte(compte.getId());
+        List<Pret> prets = pretService.findByCompte(compte.getId());
         List<PretStatut> pretStatuts = pretService.getPretsImpayesListByCompte(compte.getId());
         PretStatut pretUnique = pretService.getPretsImpayesByCompte(compte.getId());
 
@@ -290,13 +270,13 @@ public class OperationCourantServlet extends HttpServlet {
         double resteAPaye = 0.0;
 
         if (pretUnique != null) {
-            pretImpaye = pretDAO.findById(pretUnique.getPret().getId());
-            remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
+            pretImpaye = pretService.findPret(pretUnique.getPret().getId());
+            remboursements = pretService.getRemboursementByPret(pretImpaye.getId());
             resteAPaye = pretService.resteAPaye(pretImpaye.getId());
         }
 
-        List<Transaction> sender = transactionDAO.findBySender(compte.getId());
-        List<Transaction> receiver = transactionDAO.findByReceiver(compte.getId());
+        List<Transaction> sender = transactionService.findBySender(compte.getId());
+        List<Transaction> receiver = transactionService.findByReceiver(compte.getId());
 
         request.setAttribute("compte", compte);
         request.setAttribute("solde", solde);
@@ -341,8 +321,8 @@ public class OperationCourantServlet extends HttpServlet {
             return;
 
         for (PretStatut pretStatut : pretStatuts) {
-            Pret pret = pretDAO.findById(pretStatut.getPret().getId());
-            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
+            Pret pret = pretService.findPret(pretStatut.getPret().getId());
+            List<Remboursement> remboursements = pretService.getRemboursementByPret(pret.getId());
             double resteAPaye = pretService.resteAPaye(pret.getId());
 
             request.setAttribute("pretImpaye_" + pretStatut.getId(), pret);

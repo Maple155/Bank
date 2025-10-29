@@ -7,37 +7,24 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
-
-import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.TransactionRemote;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.centralisateur.ejb.CompteDepotEJB;
-import com.banque.centralisateur.ejb.OperationDepotEJB;
-import com.banque.courant.dao.ClientDAO;
-import com.banque.courant.dao.TransactionDAO;
 import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
 
 @WebServlet("/transaction")
 public class TransactionServlet extends HttpServlet {
-
-    @Inject
-    private CompteDepotEJB compteDepotEJB;
-    @Inject
-    private OperationDepotEJB ODE;
-
+    
     @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private TransactionDAO transactionDAO;
+    private CompteCourantRemote compteCourantService;
 
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote OSE;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
     private TransactionRemote TSE;
 
@@ -48,7 +35,7 @@ public class TransactionServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         int compteId = Integer.parseInt(req.getParameter("compte"));
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         double solde = OSE.getSoldeActuel(compteId);
 
         req.setAttribute("compte", compte);
@@ -60,7 +47,7 @@ public class TransactionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int compteId = Integer.parseInt(request.getParameter("compte"));
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         double solde = OSE.getSoldeActuel(compteId);
         String action = request.getParameter("action");
 
@@ -122,7 +109,7 @@ public class TransactionServlet extends HttpServlet {
 
     private void handleSearch(HttpServletRequest request, double solde) {
         String numero = request.getParameter("numero");
-        CompteCourant receiver = compteCourantDAO.findByNumero(numero);
+        CompteCourant receiver = compteCourantService.findByNumero(numero);
 
         request.setAttribute("solde", solde);
 
@@ -139,7 +126,7 @@ public class TransactionServlet extends HttpServlet {
 
     private void handleSend(HttpServletRequest request, double solde, CompteCourant sender) {
         int receiverId = Integer.parseInt(request.getParameter("receiver"));
-        CompteCourant receiver = compteCourantDAO.findById(receiverId);
+        CompteCourant receiver = compteCourantService.find(receiverId);
         double montant = Double.parseDouble(request.getParameter("montant"));
         double reste = solde - montant;
 

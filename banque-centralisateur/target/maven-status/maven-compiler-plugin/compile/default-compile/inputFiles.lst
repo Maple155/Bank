@@ -2,11 +2,11 @@ D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisa
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\OperationCourantServlet.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\model\OperationDepot.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\ConnexionServlet.java
-D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\ejb\OperationDepotEJB.java
+D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\service\CompteDepotService.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\TransactionServlet.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\BanqueServlet.java
-D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\ejb\CompteDepotEJB.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\LoginServlet.java
+D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\service\OperationDepotService.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\OperationDepotServlet.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\ConnexionDepotServlet.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-centralisateur\src\main\java\com\banque\centralisateur\web\PretServlet.java

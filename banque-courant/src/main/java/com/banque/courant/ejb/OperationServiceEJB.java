@@ -3,34 +3,37 @@ package com.banque.courant.ejb;
 import com.banque.courant.entity.*;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.dao.*;
-import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 
 @Stateless
 public class OperationServiceEJB implements OperationRemote{
+    
     @PersistenceContext(unitName = "banquePU")
     private EntityManager em;
 
-    @EJB
-    private OperationDAO operationDAO;
-
     @Override
     public OperationCourant find(int id) {
-        return em.find(OperationCourant.class, id);
+        OperationDAO operationDAO = new OperationDAO(em);
+        return operationDAO.findById(id);
     }
 
     @Override
     public List<OperationCourant> all() {
-        return em.createQuery("SELECT op FROM OperationCourant op", OperationCourant.class).getResultList();
+        OperationDAO operationDAO = new OperationDAO(em);
+        return operationDAO.findAll();
+    }
+
+    @Override
+    public OperationDAO getOperationDAO () {
+        return new OperationDAO(em);
     }
 
     @Override
     public double getSoldeActuel(int compte_id) {
+        OperationDAO operationDAO = new OperationDAO(em);
         List<OperationCourant> operation = operationDAO.findByCompte(compte_id);
         double solde = 0.0;
 
@@ -45,5 +48,17 @@ public class OperationServiceEJB implements OperationRemote{
         }
 
         return solde;
+    }
+
+    @Override
+    public void save (OperationCourant operationCourant) {
+        OperationDAO operationDAO = new OperationDAO(em);
+        operationDAO.save(operationCourant);
+    }
+
+    @Override
+    public List<OperationCourant> findByCompte (int compte_id) {
+        OperationDAO operationDAO = new OperationDAO(em);
+        return operationDAO.findByCompte(compte_id);
     }
 }

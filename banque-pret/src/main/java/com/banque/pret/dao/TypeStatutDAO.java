@@ -1,19 +1,18 @@
 package com.banque.pret.dao;
 
-import com.banque.courant.entity.*;
 import com.banque.entity.TypesStatut;
-import com.banque.pret.entity.*;
-import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
-@Stateless
 public class TypeStatutDAO {
  
-    @PersistenceContext(unitName = "banquePretPU")
+    
     private EntityManager em;
+    
+    public TypeStatutDAO(EntityManager em) {
+        this.em = em;
+    }
 
     public TypesStatut findById(int id) {
         return em.find(TypesStatut.class, id);

@@ -27,9 +27,6 @@ public class UtilisateurServiceEJB implements UtilisateurRemote {
     private List<Direction> directions;
     private List<Action_role> actionRoles;
 
-    // ========================================
-    // PostConstruct : préchargement des données
-    // ========================================
     @PostConstruct
     public void ejbCreate() {
         try {
@@ -48,10 +45,6 @@ public class UtilisateurServiceEJB implements UtilisateurRemote {
             e.printStackTrace();
         }
     }
-
-    // ========================================
-    // Fonctions CRUD et login
-    // ========================================
 
     @Override
     public UtilisateurDTO find(int id) {

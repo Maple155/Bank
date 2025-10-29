@@ -34,5 +34,27 @@ public interface PretRemote {
     void demanderPret(Pret pret);
 
     Pret getLatestPret(int compteId);
+
+    PretStatut findPretStatut(int id);
+
+    void savePretStatut(PretStatut pretStatut);
+
+    List<PretStatut> allPretStatuts();
+
+    PretStatut findByType(String type);
+
+    PretStatut findByPret(int pret_id);
+
+    PretStatut pretWithStatutActuel(int pret_id);
+
+    List<PretStatut> pretsAvecStatutActuelByCompte(int compte_id);
+
+    List<PretStatut> pretsAvecStatutActuelByClient(int client_id);
+
+    List<PretStatut> getPretsByCompteAndStatut(int compte_id, int statut_id);
+
+    List<Pret> findByCompte(int compte);
+
+    List<Remboursement> getRemboursementByPret(int pret_id);
     
 }

@@ -1,7 +1,9 @@
+com\banque\pret\ejb\TypeStatutServiceEJB.class
 com\banque\pret\entity\Remboursement.class
 com\banque\pret\remote\PretRemote.class
 com\banque\pret\ejb\PretServiceEJB.class
 com\banque\pret\entity\PretStatut.class
+com\banque\pret\remote\TypeStatutRemote.class
 com\banque\pret\dao\PretDAO.class
 com\banque\pret\ejb\PDFservice.class
 com\banque\pret\dao\PretStatutDAO.class

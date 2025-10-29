@@ -1,26 +1,28 @@
-package com.banque.centralisateur.ejb;
+package com.banque.centralisateur.service;
 
 import com.banque.centralisateur.model.CompteDepot;
-import jakarta.ejb.Stateless;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 import java.util.ArrayList;
 
 @ApplicationScoped
-public class CompteDepotEJB {
+public class CompteDepotService {
 
     private static final String DOTNET_API = "http://localhost:5240/api/comptedepot";
+    // private static final String DOTNET_API = "http://localhost:5555/api/comptedepot";
     private final Client client = ClientBuilder.newClient();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     public CompteDepot getCompteDepot(int id) {
         try {

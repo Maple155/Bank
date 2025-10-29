@@ -5,18 +5,16 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.courant.ejb.*;
-import com.banque.courant.dao.*;
+
 import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.centralisateur.model.*;
-import com.banque.centralisateur.ejb.*;
-
+import com.banque.centralisateur.service.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -27,16 +25,12 @@ import java.util.List;
 public class ConnexionDepotServlet extends HttpServlet {
 
     @Inject
-    private CompteDepotEJB compteDepotEJB;
+    private CompteDepotService compteDepotService;
     @Inject
-    private OperationDepotEJB operationDepotEJB;
+    private OperationDepotService operationDepotService;
 
     @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
+    private CompteCourantRemote compteCourantService;
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
 
@@ -46,14 +40,14 @@ public class ConnexionDepotServlet extends HttpServlet {
 
         try {
             int compteId = Integer.parseInt(req.getParameter("compte"));
-            CompteCourant compteCourant = compteCourantDAO.findById(compteId);
+            CompteCourant compteCourant = compteCourantService.find(compteId);
 
             if (compteCourant == null) {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Compte introuvable");
                 return;
             }
 
-            List<CompteDepot> comptes = compteDepotEJB.getComptesByClient(compteCourant.getClient().getId());
+            List<CompteDepot> comptes = compteDepotService.getComptesByClient(compteCourant.getClient().getId());
             req.setAttribute("compte", compteCourant);
             req.setAttribute("comptes", comptes);
             req.getRequestDispatcher("/connexionDepot.jsp").forward(req, resp);
@@ -105,9 +99,9 @@ public class ConnexionDepotServlet extends HttpServlet {
 
         if (isRole == false) {
             int compteId = Integer.parseInt(req.getParameter("courant"));
-            CompteCourant compteCourant = compteCourantDAO.findById(compteId);
+            CompteCourant compteCourant = compteCourantService.find(compteId);
 
-            List<CompteDepot> comptes = compteDepotEJB.getComptesByClient(compteCourant.getClient().getId());
+            List<CompteDepot> comptes = compteDepotService.getComptesByClient(compteCourant.getClient().getId());
             req.setAttribute("compte", compteCourant);
             req.setAttribute("comptes", comptes);
             req.setAttribute("error", "Vous ne pouvez pas effectuer cette operation");
@@ -136,8 +130,8 @@ public class ConnexionDepotServlet extends HttpServlet {
         String numero = req.getParameter("numero");
         int compteCourantId = Integer.parseInt(req.getParameter("courant").toString());
 
-        CompteDepot compteDepot = compteDepotEJB.getComptesByNumero(numero);
-        CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
+        CompteDepot compteDepot = compteDepotService.getComptesByNumero(numero);
+        CompteCourant compteCourant = compteCourantService.find(compteCourantId);
 
         if (compteDepot == null) {
             req.setAttribute("error", "Compte dépôt introuvable");
@@ -145,8 +139,8 @@ public class ConnexionDepotServlet extends HttpServlet {
             return;
         }
 
-        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
-        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        double solde = operationDepotService.getSoldeByCompte(compteDepot.getId());
+        List<OperationDepot> operations = operationDepotService.getOperationsByCompte(compteDepot.getId());
 
         refreshDepotData(req, compteDepot);
 
@@ -170,7 +164,7 @@ public class ConnexionDepotServlet extends HttpServlet {
 
         try {
             int compteCourantId = Integer.parseInt(req.getParameter("courant"));
-            CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
+            CompteCourant compteCourant = compteCourantService.find(compteCourantId);
 
             if (compteCourant == null) {
                 req.setAttribute("error", "Compte courant introuvable");
@@ -190,9 +184,9 @@ public class ConnexionDepotServlet extends HttpServlet {
             nouveauDepot.setCodeSecret(codeSecret);
             nouveauDepot.setDateOuverture(LocalDateTime.now());
             nouveauDepot.setEtat("ouvert");
-            compteDepotEJB.createCompteDepot(nouveauDepot);
+            compteDepotService.createCompteDepot(nouveauDepot);
 
-            List<CompteDepot> comptes = compteDepotEJB.getComptesByClient(compteCourant.getClient().getId());
+            List<CompteDepot> comptes = compteDepotService.getComptesByClient(compteCourant.getClient().getId());
 
             req.setAttribute("compte", compteCourant);
             req.setAttribute("comptes", comptes);
@@ -206,12 +200,12 @@ public class ConnexionDepotServlet extends HttpServlet {
     }
 
     private void refreshDepotData(HttpServletRequest request, CompteDepot compteDepot) {
-        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        List<OperationDepot> operations = operationDepotService.getOperationsByCompte(compteDepot.getId());
         if (operations == null) {
             operations = new ArrayList<>();
         }
 
-        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
+        double solde = operationDepotService.getSoldeByCompte(compteDepot.getId());
 
         double interetTotal = 0.0;
         double tauxAnnuel = 0.02;

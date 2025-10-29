@@ -9,37 +9,31 @@ import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-
-import com.banque.courant.dao.*;
 import com.banque.courant.dto.*;
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.ClientRemote;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.TransactionRemote;
 import com.banque.entity.*;
-import com.banque.pret.dao.PretDAO;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
 
 @WebServlet("/connexion")
 public class ConnexionServlet extends HttpServlet {
 
+    @EJB 
+    private ClientRemote clientService;
+
     @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private PretDAO pretDAO;
-    @EJB
-    private BanqueDAO banqueDAO;
-    @EJB
-    private TransactionDAO transactionDAO;
+    private CompteCourantRemote compteCourantService;
 
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
+    
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote pretService;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/TransactionServiceEJB!com.banque.courant.remote.TransactionRemote")
     private TransactionRemote transactionService;
 
@@ -58,7 +52,7 @@ public class ConnexionServlet extends HttpServlet {
         }
 
 
-        List<CompteCourant> comptes = compteCourantDAO.findAll();
+        List<CompteCourant> comptes = compteCourantService.all();
         req.setAttribute("comptes", comptes);
         req.getRequestDispatcher("/connexion.jsp").forward(req, resp);
     }
@@ -112,7 +106,7 @@ public class ConnexionServlet extends HttpServlet {
 
         // TRAITEMENT DU LOGIN CLIENT (toujours exécuté)
         String numero = request.getParameter("numero");
-        CompteCourant compte = compteCourantDAO.findByNumero(numero);
+        CompteCourant compte = compteCourantService.findByNumero(numero);
 
         if (compte == null) {
             request.setAttribute("error", "Compte introuvable !");
@@ -122,8 +116,8 @@ public class ConnexionServlet extends HttpServlet {
 
         // Récupérer les données du client
         double solde = operationService.getSoldeActuel(compte.getId());
-        List<OperationCourant> operations = operationDAO.findByCompte(compte.getId());
-        List<Pret> prets = pretDAO.findByCompte(compte.getId());
+        List<OperationCourant> operations = operationService.findByCompte(compte.getId());
+        List<Pret> prets = pretService.findByCompte(compte.getId());
         PretStatut pretUnique = pretService.getPretsImpayesByCompte(compte.getId());
         List<PretStatut> pretStatuts = pretService.getPretsImpayesListByCompte(compte.getId());
 
@@ -134,13 +128,13 @@ public class ConnexionServlet extends HttpServlet {
         double resteAPayer = 0.0;
 
         if (pretUnique != null) {
-            pretImpaye = pretDAO.findById(pretUnique.getPret().getId());
-            remboursements = pretDAO.getRemboursementByPret(pretImpaye.getId());
+            pretImpaye = pretService.findPret(pretUnique.getPret().getId());
+            remboursements = pretService.getRemboursementByPret(pretImpaye.getId());
             resteAPayer = pretService.resteAPaye(pretImpaye.getId());
         }
 
-        List<Transaction> transactionsSender = transactionDAO.findBySender(compte.getId());
-        List<Transaction> transactionsReceiver = transactionDAO.findByReceiver(compte.getId());
+        List<Transaction> transactionsSender = transactionService.findBySender(compte.getId());
+        List<Transaction> transactionsReceiver = transactionService.findByReceiver(compte.getId());
 
         // AJOUTER LES DONNÉES CLIENT À LA REQUÊTE
         request.setAttribute("sender", transactionsSender);
@@ -165,8 +159,8 @@ public class ConnexionServlet extends HttpServlet {
         request.setAttribute("pretStatus", pretStatuts);
 
         for (PretStatut pretStatut : pretStatuts) {
-            Pret pret = pretDAO.findById(pretStatut.getPret().getId());
-            List<Remboursement> remboursements = pretDAO.getRemboursementByPret(pret.getId());
+            Pret pret = pretService.findPret(pretStatut.getPret().getId());
+            List<Remboursement> remboursements = pretService.getRemboursementByPret(pret.getId());
             double resteAPayer = pretService.resteAPaye(pret.getId());
 
             request.setAttribute("pretImpaye_" + pretStatut.getId(), pret);
@@ -193,18 +187,18 @@ public class ConnexionServlet extends HttpServlet {
 
         Date dateNaissance = Date.valueOf(dateStr);
         Client client = new Client(nom, prenom, email, adresse, dateNaissance);
-        clientDAO.save(client);
+        clientService.save(client);
 
-        client = clientDAO.findByEmail(email);
+        client = clientService.findByEmail(email);
 
         CompteCourant compte = new CompteCourant();
         compte.setClient(client);
         compte.setCode_secret(pwd);
         compte.setDateOuverture(Date.valueOf(LocalDate.now()));
         compte.setEtat("ouvert");
-        compteCourantDAO.save(compte);
+        compteCourantService.save(compte);
 
-        List<CompteCourant> comptes = compteCourantDAO.findAll();
+        List<CompteCourant> comptes = compteCourantService.all();
         request.setAttribute("comptes", comptes);
         request.setAttribute("message", "Inscription réussie, connectez-vous !");
         request.getRequestDispatcher("/connexion.jsp").forward(request, response);

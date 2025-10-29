@@ -1,7 +1,0 @@
-<jboss-deployment-structure>
-  <deployment>
-    <dependencies>
-      <module name="deployment.banque-ear-1.0-SNAPSHOT.ear.com.banque-banque-change-1.0-SNAPSHOT.war" services="import"/>
-    </dependencies>
-  </deployment>
-</jboss-deployment-structure>
