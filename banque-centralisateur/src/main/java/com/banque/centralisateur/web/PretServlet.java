@@ -8,48 +8,32 @@ import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.courant.dao.CompteCourantDAO;
-import com.banque.courant.dao.BanqueDAO;
-import com.banque.courant.dao.ClientDAO;
-import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
-import com.banque.courant.ejb.OperationServiceEJB;
-import com.banque.pret.dao.PretDAO;
-import com.banque.pret.dao.PretStatutDAO;
-import com.banque.pret.dao.TypeStatutDAO;
 import com.banque.pret.ejb.PDFservice;
-import com.banque.pret.ejb.PretServiceEJB;
 import com.banque.pret.entity.Pret;
 import com.banque.pret.entity.PretStatut;
-import com.banque.pret.entity.Remboursement;
 import com.banque.pret.remote.PretRemote;
+import com.banque.pret.remote.TypeStatutRemote;
 import com.banque.entity.TypesStatut;
 
 @WebServlet("/pret")
 public class PretServlet extends HttpServlet {
+    
+    @EJB
+    private CompteCourantRemote compteCourantService;
 
-    @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
-    @EJB
-    private OperationDAO operationDAO;
-    @EJB
-    private TypeStatutDAO typeStatutDAO;
-    @EJB
-    private PretStatutDAO pretStatutDAO;
-    @EJB
-    private PretDAO pretDAO;
-    @EJB
-    private BanqueDAO banqueDAO;
+    @EJB 
+    private TypeStatutRemote typeStatutService;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote OSE;
+    
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")
     private PretRemote PSE;
 
@@ -58,7 +42,7 @@ public class PretServlet extends HttpServlet {
             throws ServletException, IOException {
 
         int compteId = Integer.parseInt(req.getParameter("compte"));
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         String download = req.getParameter("download");
 
         if ("1".equals(download)) {
@@ -108,7 +92,7 @@ public class PretServlet extends HttpServlet {
 
         String action = req.getParameter("action");
         int compteId = Integer.parseInt(req.getParameter("compte"));
-        CompteCourant compte = compteCourantDAO.findById(compteId);
+        CompteCourant compte = compteCourantService.find(compteId);
         Date dateOperation = Date.valueOf(req.getParameter("date").toString());
         // Date currDate = Date.valueOf(LocalDate.now());
         Date currDate = dateOperation;
@@ -249,7 +233,7 @@ public class PretServlet extends HttpServlet {
             int pretId = Integer.parseInt(req.getParameter("pret"));
             double montant = Double.parseDouble(req.getParameter("montant"));
 
-            Pret pret = pretDAO.findById(pretId);
+            Pret pret = PSE.findPret(pretId);
             double resteApaye = PSE.resteAPaye(pret.getId());
 
             if (resteApaye <= 0) {
@@ -267,12 +251,12 @@ public class PretServlet extends HttpServlet {
                 if (montantAPayer > solde) {
                     req.setAttribute("error", "Votre solde est insuffisant pour ce montant");
                 } else {
-                    PSE.rembourserPret(pret, compte, montantAPayer, currDate, operationDAO);
+                    PSE.rembourserPret(pret, compte, montantAPayer, currDate, OSE.getOperationDAO());
 
                     if (nouveauReste <= 0) {
-                        TypesStatut type = typeStatutDAO.findByType("Rembourse");
+                        TypesStatut type = typeStatutService.findByType("Rembourse");
                         PretStatut statut = new PretStatut(pret, type, currDate);
-                        pretStatutDAO.save(statut);
+                        PSE.savePretStatut(statut);
                         req.setAttribute("message", "Vous avez remboursé la totalité de votre prêt");
                     } else {
                         req.setAttribute("message", "Vous avez remboursé une partie de votre prêt");

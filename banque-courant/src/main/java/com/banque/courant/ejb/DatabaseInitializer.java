@@ -1,8 +1,8 @@
 package com.banque.courant.ejb;
 
-import com.banque.entity.Direction;
-import com.banque.entity.Utilisateur;
-import com.banque.entity.Action_role;
+// import com.banque.entity.Direction;
+// import com.banque.entity.Utilisateur;
+// import com.banque.entity.Action_role;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;

@@ -19,7 +19,7 @@ CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
 
 # Creer utilisateur test test (b) et test test (a) avec docker exec -it banque-change /bin/bash 
 # puis /opt/jboss/wildfly/bin/add-user.sh 
-# enfin verification cat /opt/jboss/wildfly/standalone/configuration/mgmt-users.properties
+# pour verification cat /opt/jboss/wildfly/standalone/configuration/mgmt-users.properties
 
 # A chaque modif utiliser 
 # docker cp target/banque-change-1.0-SNAPSHOT.war banque-change:/opt/jboss/wildfly/standalone/deployments/

@@ -1,16 +1,12 @@
 package com.banque.centralisateur.web;
 
 import com.banque.courant.dto.ActionRoleDTO;
-import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
 import com.banque.courant.remote.UtilisateurRemote;
-import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
@@ -47,8 +43,6 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("actionRoles", sessionUtilisateur.getActionRoles());
                 session.setAttribute("directions", sessionUtilisateur.getDirections());
 
-                // durée d'inactivité : 30 minutes (exemple)
-                // session.setMaxInactiveInterval(30 * 60);
 
                 for (ActionRoleDTO actions : sessionUtilisateur.getActionRoles()) {
                     System.out.println("actions : " + actions.toString());
@@ -72,9 +66,6 @@ public class LoginServlet extends HttpServlet {
 
     private UtilisateurRemote lookupUtilisateurEJB() throws Exception {
         Context ctx = new InitialContext();
-
-        // JNDI name pour WildFly/JBoss
-        // Format: java:global/<ear-name>/<module-name>/<ejb-name>!<interface-name>
         return (UtilisateurRemote) ctx.lookup(
                 "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/UtilisateurServiceEJB!com.banque.courant.remote.UtilisateurRemote");
     }

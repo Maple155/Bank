@@ -2,6 +2,7 @@ package com.banque.courant.remote;
 
 import java.util.List;
 
+import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.OperationCourant;
 
 import jakarta.ejb.Remote;
@@ -12,4 +13,7 @@ public interface OperationRemote {
     public OperationCourant find(int id);
     public List<OperationCourant> all();
     public double getSoldeActuel(int compte_id);
+    void save(OperationCourant operationCourant);
+    List<OperationCourant> findByCompte(int compte_id);
+    OperationDAO getOperationDAO();
 }

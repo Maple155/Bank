@@ -1,10 +1,8 @@
 package com.banque.courant.entity;
 
 import jakarta.persistence.*;
-
 import java.io.Serializable;
 import java.sql.Date;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "operation_courant")

@@ -10,4 +10,6 @@ public interface BanqueRemote {
     public Banque find(int id);
 
     public List<Banque> all();
+
+    void save(Banque banque);
 }

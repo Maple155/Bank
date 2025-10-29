@@ -1,7 +1,6 @@
 package com.banque.entity;
 
 import java.io.Serializable;
-
 import jakarta.persistence.*;
 
 @Entity

@@ -1,23 +1,20 @@
-package com.banque.centralisateur.ejb;
+package com.banque.centralisateur.service;
 
 import com.banque.centralisateur.model.CompteDepot;
 import com.banque.centralisateur.model.OperationDepot;
-import com.banque.courant.dao.OperationDAO;
 import com.banque.courant.entity.CompteCourant;
 import com.banque.courant.entity.OperationCourant;
-
+import com.banque.courant.remote.OperationRemote;
 import jakarta.ejb.EJB;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.util.List;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -25,16 +22,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @ApplicationScoped
-public class OperationDepotEJB {
+public class OperationDepotService {
 
-    @EJB
-    private OperationDAO operationDAO;
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
+    private OperationRemote operationService;
 
     private static final String DOTNET_API = "http://localhost:5240/api/operationdepot";
+    // private static final String DOTNET_API = "http://localhost:5555/api/operationdepot";
     private final Client client = ClientBuilder.newClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public OperationDepotEJB() {
+    public OperationDepotService() {
         mapper.registerModule(new JavaTimeModule());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
@@ -118,7 +116,7 @@ public class OperationDepotEJB {
         this.createOperation(opd);
 
         OperationCourant opc = new OperationCourant(compteCourant, (montant * -1), Date.valueOf(LocalDate.now()), true);
-        operationDAO.save(opc);
+        operationService.save(opc);
     }
 
     public void debiterCompte (CompteDepot compteDepot, CompteCourant compteCourant, double montant, LocalDateTime currDate) {
@@ -126,7 +124,7 @@ public class OperationDepotEJB {
         this.createOperation(opd);
 
         OperationCourant opc = new OperationCourant(compteCourant, montant, Date.valueOf(LocalDate.now()), true);
-        operationDAO.save(opc);
+        operationService.save(opc);
     }
 
     public LocalDateTime getLastDebitDate(List<OperationDepot> operationDepots)

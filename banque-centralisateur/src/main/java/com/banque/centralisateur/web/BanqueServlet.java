@@ -5,17 +5,16 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-
 import com.banque.courant.entity.*;
+import com.banque.courant.remote.ClientRemote;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.entity.*;
-import com.banque.pret.dao.*;
 import com.banque.pret.entity.*;
 import com.banque.pret.remote.PretRemote;
-import com.banque.centralisateur.ejb.*;
+import com.banque.pret.remote.TypeStatutRemote;
 import com.banque.centralisateur.model.CompteDepot;
-import com.banque.courant.dao.*;
-
+import com.banque.centralisateur.service.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -25,16 +24,15 @@ import java.util.List;
 @WebServlet("/banque")
 public class BanqueServlet extends HttpServlet {
 
-    @Inject private CompteDepotEJB compteDepotEJB;
-    @Inject private OperationDepotEJB operationDepotEJB;
-
-    @EJB private ClientDAO clientDAO;
-    @EJB private CompteCourantDAO compteCourantDAO;
-    @EJB private PretDAO pretDAO;
-    @EJB private TypeStatutDAO typeStatutDAO;
-    @EJB private PretStatutDAO pretStatutDAO;
-    @EJB private BanqueDAO banqueDAO;
-    
+    @Inject private CompteDepotService compteDepotService;
+    @Inject private OperationDepotService operationDepotService;
+ 
+    @EJB 
+    private TypeStatutRemote typeStatutService;
+    @EJB 
+    private ClientRemote clientService;
+    @EJB
+    private CompteCourantRemote compteCourantService;
     @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
     private OperationRemote operationService;
     @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")    
@@ -48,7 +46,7 @@ public class BanqueServlet extends HttpServlet {
 
         // 🔹 Si aucune action : afficher la liste des clients
         if (action == null) {
-            List<Client> clientsList = clientDAO.findAll();
+            List<Client> clientsList = clientService.all();
             req.setAttribute("clients", clientsList);
             req.getRequestDispatcher("/listeClient.jsp").forward(req, resp);
             return;
@@ -97,12 +95,12 @@ public class BanqueServlet extends HttpServlet {
      * Met à jour le statut d’un prêt avec un type spécifique (En cours / Refusé)
      */
     private void mettreAJourStatutPret(int pretId, String typeStatut) {
-        Pret pret = pretDAO.findById(pretId);
+        Pret pret = pretService.findPret(pretId);
         if (pret == null) return;
 
-        TypesStatut type = typeStatutDAO.findByType(typeStatut);
+        TypesStatut type = typeStatutService.findByType(typeStatut);
         PretStatut pretStatut = new PretStatut(pret, type, Date.valueOf(LocalDate.now()));
-        pretStatutDAO.save(pretStatut);
+        pretService.savePretStatut(pretStatut);
     }
 
     /**
@@ -111,7 +109,7 @@ public class BanqueServlet extends HttpServlet {
     private void afficherDetailsClient(HttpServletRequest req, HttpServletResponse resp, int clientId)
             throws ServletException, IOException {
 
-        Client client = clientDAO.findById(clientId);
+        Client client = clientService.find(clientId);
         if (client == null) {
             req.setAttribute("error", "Client introuvable");
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
@@ -126,7 +124,7 @@ public class BanqueServlet extends HttpServlet {
         List<PretStatut> pretsImpayes = new ArrayList<>();
 
         // 🔹 Comptes courants
-        List<CompteCourant> comptesCourants = compteCourantDAO.findByClient(client);
+        List<CompteCourant> comptesCourants = compteCourantService.findByClient(client);
         for (CompteCourant compte : comptesCourants) {
             double soldeActuel = operationService.getSoldeActuel(compte.getId());
             soldeCourant += soldeActuel;
@@ -141,18 +139,15 @@ public class BanqueServlet extends HttpServlet {
             }
         }
 
-        // 🔹 Comptes dépôts
-        List<CompteDepot> comptesDepots = compteDepotEJB.getComptesByClient(clientId);
+        List<CompteDepot> comptesDepots = compteDepotService.getComptesByClient(clientId);
         for (CompteDepot depot : comptesDepots) {
-            double soldeDepotActuel = operationDepotEJB.getSoldeByCompte(depot.getId());
+            double soldeDepotActuel = operationDepotService.getSoldeByCompte(depot.getId());
             soldeDepot += soldeDepotActuel;
             soldeTotal += soldeDepotActuel;
         }
 
-        // 🔹 Tous les prêts du client
-        List<PretStatut> tousLesPrets = pretStatutDAO.getPretsAvecStatutActuelByClient(clientId);
+        List<PretStatut> tousLesPrets = pretService.pretsAvecStatutActuelByClient(clientId);
 
-        // 🔹 Passage des données à la vue
         req.setAttribute("client", client);
         req.setAttribute("compteCourants", comptesCourants);
         req.setAttribute("compteDepots", comptesDepots);

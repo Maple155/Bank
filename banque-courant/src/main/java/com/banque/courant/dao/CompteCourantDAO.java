@@ -2,18 +2,17 @@ package com.banque.courant.dao;
 
 import com.banque.courant.entity.*;
 import com.banque.entity.Client;
-
-import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
-@Stateless
 public class CompteCourantDAO {
 
-    @PersistenceContext(unitName = "banquePU")
     private EntityManager em;
+
+    public CompteCourantDAO(EntityManager em) {
+        this.em = em;
+    }
 
     public CompteCourant findById(int id) {
         return em.find(CompteCourant.class, id);

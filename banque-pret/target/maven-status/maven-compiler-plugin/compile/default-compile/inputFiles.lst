@@ -3,7 +3,9 @@ D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\m
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\dao\TypeStatutDAO.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\ejb\PDFservice.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\ejb\PretServiceEJB.java
+D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\ejb\TypeStatutServiceEJB.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\entity\Pret.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\entity\PretStatut.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\entity\Remboursement.java
 D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\remote\PretRemote.java
+D:\IT.University\S5\archi_log\banque\bank_project\bank_project\banque-pret\src\main\java\com\banque\pret\remote\TypeStatutRemote.java

@@ -3,7 +3,6 @@ package com.banque.courant.ejb;
 import com.banque.courant.entity.*;
 import com.banque.courant.remote.TransactionRemote;
 import com.banque.courant.dao.*;
-import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -16,24 +15,42 @@ public class TransactionServiceEJB implements TransactionRemote{
     @PersistenceContext(unitName = "banquePU")
     private EntityManager em;
 
-    @EJB
-    private TransactionDAO transactionDAO;
-
-    @EJB
-    private OperationDAO operationDAO;
-
     @Override
     public Transaction find(int id) {
-        return em.find(Transaction.class, id);
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        return transactionDAO.findById(id);
     }
 
     @Override
     public List<Transaction> all() {
-        return em.createQuery("SELECT op FROM Transaction op", Transaction.class).getResultList();
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        return transactionDAO.findAll();
     }
     
+    @Override 
+    public void save (Transaction transaction) {
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        transactionDAO.save(transaction);
+    }
+
+    @Override
+    public List<Transaction> findBySender (int sender_id) {
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        return transactionDAO.findBySender(sender_id);
+    }
+
+    @Override
+    public List<Transaction> findByReceiver (int receiver_id) {
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        return transactionDAO.findByReceiver(receiver_id);
+    }
+
     @Override
     public void effectuerTransfert(CompteCourant compte, CompteCourant receiver, double montant) {
+
+        TransactionDAO transactionDAO = new TransactionDAO(em);
+        OperationDAO operationDAO = new OperationDAO(em);
+
         montant = montant * -1;
 
         OperationCourant debit = new OperationCourant();

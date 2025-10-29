@@ -1,18 +1,17 @@
 package com.banque.pret.dao;
 
-import com.banque.courant.entity.*;
 import com.banque.pret.entity.*;
-import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 
-@Stateless
 public class PretDAO {
 
-    @PersistenceContext(unitName = "banquePretPU")
     private EntityManager em;
+
+    public PretDAO(EntityManager em) {
+        this.em = em;
+    }
 
     public Pret findById(int id) {
         return em.find(Pret.class, id);

@@ -7,19 +7,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import com.banque.courant.entity.CompteCourant;
+import com.banque.courant.remote.CompteCourantRemote;
 import com.banque.courant.remote.OperationRemote;
 import com.banque.courant.remote.UtilisateurRemote;
-import com.banque.courant.dao.CompteCourantDAO;
 import com.banque.courant.dto.ActionRoleDTO;
 import com.banque.courant.dto.DirectionDTO;
 import com.banque.courant.dto.UtilisateurDTO;
-import com.banque.centralisateur.ejb.CompteDepotEJB;
-import com.banque.centralisateur.ejb.OperationDepotEJB;
 import com.banque.centralisateur.model.CompteDepot;
 import com.banque.centralisateur.model.OperationDepot;
-import com.banque.courant.dao.ClientDAO;
-import com.banque.courant.ejb.OperationServiceEJB;
-
+import com.banque.centralisateur.service.CompteDepotService;
+import com.banque.centralisateur.service.OperationDepotService;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDateTime;
@@ -31,14 +28,13 @@ import java.util.List;
 public class OperationDepotServlet extends HttpServlet {
 
     @Inject
-    private CompteDepotEJB compteDepotEJB;
+    private CompteDepotService compteDepotService;
     @Inject
-    private OperationDepotEJB operationDepotEJB;
+    private OperationDepotService operationDepotService;
 
     @EJB
-    private ClientDAO clientDAO;
-    @EJB
-    private CompteCourantDAO compteCourantDAO;
+    private CompteCourantRemote compteCourantService;
+
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
     private OperationRemote operationService;
 
@@ -93,8 +89,8 @@ public class OperationDepotServlet extends HttpServlet {
             int compteDepotId = Integer.parseInt(request.getParameter("compteDepot"));
             int compteCourantId = Integer.parseInt(request.getParameter("compte"));
             Date dateOperation = Date.valueOf(request.getParameter("date").toString());
-            CompteDepot compteDepot = compteDepotEJB.getCompteDepot(compteDepotId);
-            CompteCourant compteCourant = compteCourantDAO.findById(compteCourantId);
+            CompteDepot compteDepot = compteDepotService.getCompteDepot(compteDepotId);
+            CompteCourant compteCourant = compteCourantService.find(compteCourantId);
 
             if (compteDepot == null || compteCourant == null) {
                 request.setAttribute("error", "Compte dépôt ou compte courant introuvable");
@@ -110,8 +106,8 @@ public class OperationDepotServlet extends HttpServlet {
                 return;
             }
 
-            List<OperationDepot> operationDepots = operationDepotEJB.getAllOperations();
-            double solde = operationDepotEJB.getSoldeByCompte(compteDepotId);
+            List<OperationDepot> operationDepots = operationDepotService.getAllOperations();
+            double solde = operationDepotService.getSoldeByCompte(compteDepotId);
             double half = solde / 2;
             // LocalDateTime currDate = LocalDateTime.now();
             LocalDateTime currDate = dateOperation.toLocalDate().atStartOfDay();
@@ -130,7 +126,7 @@ public class OperationDepotServlet extends HttpServlet {
                     if (soldeCourant < montant) {
                         request.setAttribute("error", "Solde insuffisant dans le compte courant");
                     } else {
-                        operationDepotEJB.crediterCompte(compteDepot, compteCourant, montant,
+                        operationDepotService.crediterCompte(compteDepot, compteCourant, montant,
                                 currDate);
                         request.setAttribute("message", "Créditation réussie !");
                     }
@@ -146,8 +142,8 @@ public class OperationDepotServlet extends HttpServlet {
                     if (operationDepots.isEmpty()) {
                         diff = 31;
                     } else {
-                        if (operationDepotEJB.checkDebitOperation(operationDepots)) {
-                            LocalDateTime date2 = operationDepotEJB.getLastDebitDate(operationDepots);
+                        if (operationDepotService.checkDebitOperation(operationDepots)) {
+                            LocalDateTime date2 = operationDepotService.getLastDebitDate(operationDepots);
                             diff = (int) ChronoUnit.DAYS.between(date2, currDate);
                         } else {
                             diff = 31;
@@ -165,7 +161,7 @@ public class OperationDepotServlet extends HttpServlet {
                         // OperationDepot opd = new OperationDepot(compteDepotId, -montant, currDate);
                         // operationDepotEJB.createOperation(opd);
 
-                        operationDepotEJB.debiterCompte(compteDepot, compteCourant, montant,
+                        operationDepotService.debiterCompte(compteDepot, compteCourant, montant,
                                 currDate);
 
                         request.setAttribute("message", "Débit effectué avec succès !");
@@ -194,12 +190,12 @@ public class OperationDepotServlet extends HttpServlet {
      * Méthode utilitaire pour rafraîchir le solde et les opérations du compte dépôt
      */
     private void refreshDepotData(HttpServletRequest request, CompteDepot compteDepot) {
-        List<OperationDepot> operations = operationDepotEJB.getOperationsByCompte(compteDepot.getId());
+        List<OperationDepot> operations = operationDepotService.getOperationsByCompte(compteDepot.getId());
         if (operations == null) {
             operations = new ArrayList<>();
         }
 
-        double solde = operationDepotEJB.getSoldeByCompte(compteDepot.getId());
+        double solde = operationDepotService.getSoldeByCompte(compteDepot.getId());
 
         double interetTotal = 0.0;
         double tauxAnnuel = 0.02;
