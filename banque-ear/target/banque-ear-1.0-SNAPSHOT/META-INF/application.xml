@@ -8,10 +8,13 @@
     </web>
   </module>
   <module>
-    <ejb>com.banque-banque-courant-1.0-SNAPSHOT.jar</ejb>
+    <web>
+      <web-uri>com.banque-banque-pret-1.0-SNAPSHOT.war</web-uri>
+      <context-root>/banque-pret</context-root>
+    </web>
   </module>
   <module>
-    <ejb>com.banque-banque-pret-1.0-SNAPSHOT.jar</ejb>
+    <ejb>com.banque-banque-courant-1.0-SNAPSHOT.jar</ejb>
   </module>
   <library-directory>lib</library-directory>
 </application>

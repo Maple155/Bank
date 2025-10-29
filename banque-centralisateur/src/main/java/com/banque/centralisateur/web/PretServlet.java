@@ -25,10 +25,10 @@ import com.banque.entity.TypesStatut;
 @WebServlet("/pret")
 public class PretServlet extends HttpServlet {
     
-    @EJB
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
     private CompteCourantRemote compteCourantService;
 
-    @EJB 
+    @EJB (lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/TypeStatutServiceEJB!com.banque.pret.remote.TypeStatutRemote")
     private TypeStatutRemote typeStatutService;
 
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")

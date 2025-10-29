@@ -17,14 +17,13 @@
   <name>banque-ear</name>
 
   <properties>
-    <!-- Ensure this matches your project JDK/maven compiler settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>21</maven.compiler.release>
     <ear.defaultLibBundleDir>lib</ear.defaultLibBundleDir>
   </properties>
 
   <dependencies>
-    <!-- EJB modules (these will be packaged as EJB modules inside the EAR) -->
+    <!-- EJB module courant -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-courant</artifactId>
@@ -32,14 +31,15 @@
       <type>ejb</type>
     </dependency>
 
+    <!-- banque-pret est maintenant un WAR (contient EJB + REST) -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-pret</artifactId>
       <version>${project.version}</version>
-      <type>ejb</type>
+      <type>war</type> <!-- Changé de ejb à war -->
     </dependency>
 
-    <!-- Entities / shared classes as plain jar (goes into lib/) -->
+    <!-- Entities / shared classes -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-entities</artifactId>
@@ -47,7 +47,7 @@
       <type>jar</type>
     </dependency>
 
-    <!-- Centralisateur web application (WAR) - packaged as a webModule in the EAR -->
+    <!-- Centralisateur web application -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-centralisateur</artifactId>
@@ -55,11 +55,7 @@
       <type>war</type>
     </dependency>
 
-    <!-- Client JAR for banque-change produced with classifier "client".
-         This provides the remote interfaces/entities needed by the WAR at runtime,
-         without packaging the banque-change implementation (war/ejb) into the EAR.
-         IMPORTANT: do NOT include the banque-change war/ejb here to avoid duplicate deployment
-         if banque-change is deployed separately (e.g. in Docker). -->
+    <!-- Client JAR for banque-change -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-change</artifactId>
@@ -67,14 +63,10 @@
       <type>jar</type>
       <classifier>client</classifier>
     </dependency>
-
-    <!-- If you still want to include banque-change implementation inside the EAR instead of Docker,
-         replace the client dependency above with the war/ejb module (type war or ejb) and remove the Docker deployment. -->
   </dependencies>
 
   <build>
     <plugins>
-      <!-- Ensure the EAR plugin packages modules correctly and puts shared jars in lib/ -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ear-plugin</artifactId>
@@ -83,35 +75,31 @@
           <defaultLibBundleDir>${ear.defaultLibBundleDir}</defaultLibBundleDir>
 
           <modules>
-            <!-- webModule entry for banque-centralisateur -->
+            <!-- webModule pour banque-centralisateur -->
             <webModule>
               <groupId>com.banque</groupId>
               <artifactId>banque-centralisateur</artifactId>
               <contextRoot>/banque-centralisateur</contextRoot>
             </webModule>
 
-            <!-- EJB modules -->
+            <!-- webModule pour banque-pret (maintenant WAR avec EJB + REST) -->
+            <webModule>
+              <groupId>com.banque</groupId>
+              <artifactId>banque-pret</artifactId>
+              <contextRoot>/banque-pret</contextRoot>
+            </webModule>
+
+            <!-- EJB module courant uniquement -->
             <ejbModule>
               <groupId>com.banque</groupId>
               <artifactId>banque-courant</artifactId>
             </ejbModule>
-
-            <ejbModule>
-              <groupId>com.banque</groupId>
-              <artifactId>banque-pret</artifactId>
-            </ejbModule>
-
-            <!-- Note: banque-change implementation is intentionally NOT added as a module here
-                 because you deploy it separately via Docker. The client JAR (classifier client)
-                 is added as a library dependency and will be copied into lib/. -->
           </modules>
 
-          <!-- Optional: include application.xml if you need a specific descriptor; default is fine -->
           <generateApplicationXml>true</generateApplicationXml>
         </configuration>
       </plugin>
 
-      <!-- Compiler (keeps build consistent with other modules) -->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>

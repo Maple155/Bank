@@ -3,14 +3,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
   <parent>
     <groupId>com.banque</groupId>
     <artifactId>bank_project</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
+  
   <artifactId>banque-pret</artifactId>
-  <packaging>ejb</packaging>
+  <packaging>war</packaging> <!-- Changé de ejb à war -->
+  <name>banque-pret</name>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+  
   <dependencies>
+    <!-- Jakarta EE API -->
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
@@ -18,6 +28,7 @@
       <scope>provided</scope>
     </dependency>
     
+    <!-- Dépendances existantes -->
     <dependency>
       <groupId>com.banque</groupId>
       <artifactId>banque-courant</artifactId>
@@ -25,9 +36,9 @@
     </dependency>
 
     <dependency>
-        <groupId>com.banque</groupId>
-        <artifactId>banque-entities</artifactId>
-        <version>1.0-SNAPSHOT</version>
+      <groupId>com.banque</groupId>
+      <artifactId>banque-entities</artifactId>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -42,5 +53,45 @@
       <version>5.5.13.3</version>
     </dependency>
 
+    <!-- Jackson pour les services REST -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.15.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>2.15.4</version>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Compiler plugin -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+
+      <!-- WAR plugin -->
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.2</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <!-- Les EJB dans un WAR restent des EJB -->
+          <archive>
+            <manifestEntries>
+              <Dependencies>org.jboss.as.ee</Dependencies>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

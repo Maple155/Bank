@@ -32,7 +32,7 @@ public class OperationDepotServlet extends HttpServlet {
     @Inject
     private OperationDepotService operationDepotService;
 
-    @EJB
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
     private CompteCourantRemote compteCourantService;
 
     @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote")
