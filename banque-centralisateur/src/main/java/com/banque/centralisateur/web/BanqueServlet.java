@@ -27,14 +27,18 @@ public class BanqueServlet extends HttpServlet {
     @Inject private CompteDepotService compteDepotService;
     @Inject private OperationDepotService operationDepotService;
  
-    @EJB 
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/TypeStatutServiceEJB!com.banque.pret.remote.TypeStatutRemote")
     private TypeStatutRemote typeStatutService;
-    @EJB 
+    
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/ClientServiceEJB!com.banque.courant.remote.ClientRemote")
     private ClientRemote clientService;
-    @EJB
+
+    @EJB(lookup = "java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/CompteCourantServiceEJB!com.banque.courant.remote.CompteCourantRemote")
     private CompteCourantRemote compteCourantService;
+    
     @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-courant-1.0-SNAPSHOT/OperationServiceEJB!com.banque.courant.remote.OperationRemote") 
     private OperationRemote operationService;
+    
     @EJB(lookup="java:global/banque-ear-1.0-SNAPSHOT/com.banque-banque-pret-1.0-SNAPSHOT/PretServiceEJB!com.banque.pret.remote.PretRemote")    
     private PretRemote pretService;
 
